@@ -4,14 +4,38 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+
+import com.google.common.collect.Sets;
 
 import ch.bbv.bo.Week.DayOfWeek;
 
-public class Weekday {
+public class Weekday implements Observable{
 	private static DateFormat df = DateFormat.getDateInstance();
 	private Date date;
 	private DayOfWeek dayOfWeek;
 	private final List<Menu> menus = new ArrayList<Menu>();
+	
+	private final Set<InvalidationListener> listeners = Sets.newHashSet();
+	
+	@Override
+	public void addListener(InvalidationListener arg0) {
+		listeners.add(arg0);
+	}
+
+	@Override
+	public void removeListener(InvalidationListener arg0) {
+		listeners.remove(arg0);		
+	}
+	
+	private void fireStateChange() {
+		for (InvalidationListener listener : listeners) {
+			listener.invalidated(this);
+		}
+	}
 
 	public String getName() {
 		return dayOfWeek != null ?dayOfWeek.name() : "?";
@@ -23,7 +47,7 @@ public class Weekday {
 
 	public void addMenu(Menu menu) {
 		menus.add(menu);
-
+		fireStateChange();
 	}
 
 	public Date getDate() {

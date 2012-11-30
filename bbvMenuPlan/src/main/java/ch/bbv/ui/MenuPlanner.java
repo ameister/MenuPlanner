@@ -22,6 +22,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import ch.bbv.bo.Menu;
@@ -30,7 +31,7 @@ import ch.bbv.bo.Weekday;
 import ch.bbv.control.WeekNavigator;
 
 import com.google.common.collect.Lists;
-import com.sun.javafx.collections.ImmutableObservableList;
+import com.sun.javafx.collections.ObservableListWrapper;
 
 //TODO
 // - refactor:
@@ -74,7 +75,7 @@ public class MenuPlanner extends Application {
 		};
 		weekNavigator.addListener(listener);
 		VBox vBox = new VBox();
-		vBox.getChildren().addAll(box,pane);
+		vBox.getChildren().addAll(box, pane);
 
 		group.getChildren().addAll(vBox);
 
@@ -115,15 +116,42 @@ public class MenuPlanner extends Application {
 		return box;
 	}
 
+	// TODO remove them when rebuilding
+	private Node createTableFooter(final Weekday day,
+			final ObservableList<Menu> data) {
+		HBox box = new HBox();
+		Button createMenuBtn = new Button("Add Menu");
+		createMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				Menu menu = new Menu();
+				menu.setName("SchniPo " + day.getMenus().size());
+				data.add(menu);
+				showDialog();
+			}
+		});
+		box.getChildren().add(createMenuBtn);
+		return box;
+	}
+
+	//TODO make opac
+	private void showDialog() {
+		Stage stage = new Stage();
+		Scene page2 = new Scene(new Group(new Text(20, 20,
+				"This is a new dialog!")));
+		stage.setScene(page2);
+		stage.show();
+	}
+
 	private void fillTable(GridPane pane) {
 		pane.getChildren().removeAll(tables);
 		tables.clear();
 		Week week = weekNavigator.getCurrentWeek();
 		int i = 0;
 		for (Weekday day : week.getDays()) {
-			ObservableList<Menu> data = new ImmutableObservableList<Menu>(
-					(Menu[]) day.getMenus().toArray(
-							new Menu[day.getMenus().size()]));
+			ObservableList<Menu> data = new ObservableListWrapper<Menu>(
+					day.getMenus());
 			TableView<Menu> table = new TableView<Menu>(data);
 			TableColumn<Menu, String> column = new TableColumn<Menu, String>(
 					day.getName());
@@ -140,7 +168,7 @@ public class MenuPlanner extends Application {
 			tables.add(table);
 			table.setEditable(true);
 			table.setPrefSize(70, 200);
-			pane.addColumn(i++, table);
+			pane.addColumn(i++, table, createTableFooter(day, data));
 		}
 	}
 
