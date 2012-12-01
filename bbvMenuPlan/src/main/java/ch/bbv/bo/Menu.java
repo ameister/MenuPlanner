@@ -20,6 +20,10 @@ public class Menu {
 		condimentPos.add(pos);
 	}
 	
+	public List<CondimentPos> getCondiments() {
+		return condimentPos;
+	}
+	
 	@Override
 	public String toString() {
 		return getName();

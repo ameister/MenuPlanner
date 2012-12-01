@@ -2,6 +2,7 @@ package ch.bbv.bo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.google.common.collect.Iterables;
@@ -48,13 +49,14 @@ public class Week {
 	
 	@Override
 	public String toString() {
-		return "Week " + getNumber() + " " + Iterables.getFirst(days, null) + " - " + Iterables.getLast(days, null);
+		return "Woche " + getNumber() + " " + Iterables.getFirst(days, null) + " - " + Iterables.getLast(days, null);
 	}
 
-	public void buildDays() {
+	public void buildDays(int year) {
 		if(getNumber() == 0) {
 			throw new IllegalStateException("Unknown Weeknumber");
 		}
+		cal.set(Calendar.YEAR, year);
 		cal.set(Calendar.WEEK_OF_YEAR, getNumber());
 		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 		for (int i = 0; i < 7; i++) {
@@ -64,5 +66,16 @@ public class Week {
 			cal.add(Calendar.DATE, 1);
 			addDay(day);
 		}
+	}
+
+	public int getYear() {
+		cal.setTime(getDays().get(6).getDate());
+		return cal.get(Calendar.YEAR);
+	}
+
+	public void buildDays() {
+		cal.setTime(new Date());
+		buildDays(cal.get(Calendar.YEAR));
+		
 	}
 }

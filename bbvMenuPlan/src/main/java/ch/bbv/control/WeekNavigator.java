@@ -10,6 +10,7 @@ import ch.bbv.bo.Menu;
 import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
 public class WeekNavigator implements Observable {
@@ -17,7 +18,6 @@ public class WeekNavigator implements Observable {
 	private Week currentWeek;
 	private final Set<InvalidationListener> listeners = Sets.newHashSet();
 	
-
 	public Week getCurrentWeek() {
 		if(currentWeek == null) {
 			int currentWeekNumber = cal.get(Calendar.WEEK_OF_YEAR);
@@ -30,6 +30,11 @@ public class WeekNavigator implements Observable {
 		}
 		return currentWeek;
 	}
+	
+	@VisibleForTesting
+	void setCurrentWeek(Week currentWeek) {
+		this.currentWeek = currentWeek;
+	}
 
 	public Week next() {
 		return roll(1);
@@ -41,8 +46,18 @@ public class WeekNavigator implements Observable {
 
 	private Week roll(int amount) {
 		Week week = new Week();
-		week.setNumber(getCurrentWeek().getNumber() + amount);
-		week.buildDays();
+		int newNumber = getCurrentWeek().getNumber() + amount;
+		int year = currentWeek.getYear();
+		if(newNumber < 1 ) {
+			newNumber = 52;
+			year--;
+		}
+		if(newNumber > 52 ) {
+			newNumber = 1;
+			year++;
+		}
+		week.setNumber(newNumber);
+		week.buildDays(year);
 		fillInMenus(week.getDays());
 		currentWeek = week;
 		fireStateChange();

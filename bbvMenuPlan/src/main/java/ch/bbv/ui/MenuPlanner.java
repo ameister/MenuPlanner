@@ -22,7 +22,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import ch.bbv.bo.Menu;
@@ -44,6 +43,7 @@ public class MenuPlanner extends Application {
 
 	private final WeekNavigator weekNavigator = new WeekNavigator();
 	private List<TableView<Menu>> tables = Lists.newArrayList();
+	private List<Node> tableFooters = Lists.newArrayList();
 
 	public static void main(String[] args) {
 		launch(args);
@@ -116,7 +116,6 @@ public class MenuPlanner extends Application {
 		return box;
 	}
 
-	// TODO remove them when rebuilding
 	private Node createTableFooter(final Weekday day,
 			final ObservableList<Menu> data) {
 		HBox box = new HBox();
@@ -138,14 +137,19 @@ public class MenuPlanner extends Application {
 	//TODO make opac
 	private void showDialog() {
 		Stage stage = new Stage();
-		Scene page2 = new Scene(new Group(new Text(20, 20,
-				"This is a new dialog!")));
+		Group group = new Group();
+		Scene page2 = new Scene(group);
+		group.getChildren().addAll(new MenuPane());
+		
 		stage.setScene(page2);
 		stage.show();
+		
 	}
 
 	private void fillTable(GridPane pane) {
 		pane.getChildren().removeAll(tables);
+		pane.getChildren().removeAll(tableFooters);
+		tableFooters.clear();
 		tables.clear();
 		Week week = weekNavigator.getCurrentWeek();
 		int i = 0;
@@ -168,7 +172,9 @@ public class MenuPlanner extends Application {
 			tables.add(table);
 			table.setEditable(true);
 			table.setPrefSize(70, 200);
-			pane.addColumn(i++, table, createTableFooter(day, data));
+			Node tableFooter = createTableFooter(day, data);
+			tableFooters.add(tableFooter);
+			pane.addColumn(i++, table, tableFooter);
 		}
 	}
 
