@@ -22,6 +22,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import ch.bbv.bo.Menu;
@@ -44,6 +45,8 @@ public class MenuPlanner extends Application {
 	private final WeekNavigator weekNavigator = new WeekNavigator();
 	private List<TableView<Menu>> tables = Lists.newArrayList();
 	private List<Node> tableFooters = Lists.newArrayList();
+	
+	private Stage mainStage;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -81,8 +84,15 @@ public class MenuPlanner extends Application {
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
-
+		mainStage = primaryStage;
+//		initHibernate();
 	}
+	
+//	private void initHibernate() {
+//		 new Configuration()
+//         .configure()
+//         .buildSessionFactory(); // configures settings from hibernate.cfg.xml
+//	}
 
 	private void refresh(final Label label, final GridPane pane) {
 		label.setText(weekNavigator.getCurrentWeek().toString());
@@ -134,7 +144,6 @@ public class MenuPlanner extends Application {
 		return box;
 	}
 
-	//TODO make opac
 	private void showDialog() {
 		Stage stage = new Stage();
 		Group group = new Group();
@@ -142,6 +151,8 @@ public class MenuPlanner extends Application {
 		group.getChildren().addAll(new MenuPane());
 		
 		stage.setScene(page2);
+		stage.initOwner(mainStage);
+		stage.initModality( Modality.APPLICATION_MODAL);
 		stage.show();
 		
 	}

@@ -1,10 +1,13 @@
 package ch.bbv.bo;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 @Entity
 public class Condiment {
 	
+	@Id
+	private long id;
 	private String name;
 	private String barcode;
 	

@@ -25,6 +25,8 @@ import ch.bbv.control.MenuController;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 
+//TODO add ok and Cancel
+//TODO pass in menuControlller
 public class MenuPane extends GridPane{
 	 private final MenuController menuController = new MenuController();
 	private TextField nameField;

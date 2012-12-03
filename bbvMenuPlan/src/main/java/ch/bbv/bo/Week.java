@@ -5,8 +5,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 import com.google.common.collect.Iterables;
 
+@Entity
 public class Week {
 	private static final Calendar cal = Calendar.getInstance();
 	public static enum DayOfWeek {
@@ -18,7 +22,8 @@ public class Week {
 		SATURDAY,
 		SUNDAY
 	}
-	
+	@Id
+	private long id;
 	private int number;
 	private final List<Weekday> days = new ArrayList<Weekday>();
 	

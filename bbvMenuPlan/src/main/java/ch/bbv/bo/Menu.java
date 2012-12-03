@@ -2,9 +2,14 @@ package ch.bbv.bo;
 
 import java.util.List;
 
+import javax.persistence.Id;
+
 import com.google.common.collect.Lists;
 
 public class Menu {
+	
+	@Id
+	private long id;
 	private String name;
 	final private List<CondimentPos> condimentPos = Lists.newArrayList();
 	

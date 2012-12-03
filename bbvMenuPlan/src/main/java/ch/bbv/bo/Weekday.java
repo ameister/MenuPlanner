@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 
@@ -13,8 +16,11 @@ import com.google.common.collect.Sets;
 
 import ch.bbv.bo.Week.DayOfWeek;
 
+@Entity
 public class Weekday implements Observable{
 	private static DateFormat df = DateFormat.getDateInstance();
+	
+	@Id
 	private Date date;
 	private DayOfWeek dayOfWeek;
 	private final List<Menu> menus = new ArrayList<Menu>();
