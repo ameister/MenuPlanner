@@ -4,43 +4,35 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-
-import com.google.common.collect.Sets;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import ch.bbv.bo.Week.DayOfWeek;
 
 @Entity
-public class Weekday implements Observable{
+public class Weekday {
 	private static DateFormat df = DateFormat.getDateInstance();
 	
 	@Id
+	@GeneratedValue
+	private long id;
 	private Date date;
 	private DayOfWeek dayOfWeek;
+	@ManyToOne
+	private Week week;
+	@OneToMany(mappedBy = "day")
 	private final List<Menu> menus = new ArrayList<Menu>();
 	
-	private final Set<InvalidationListener> listeners = Sets.newHashSet();
-	
-	@Override
-	public void addListener(InvalidationListener arg0) {
-		listeners.add(arg0);
-	}
-
-	@Override
-	public void removeListener(InvalidationListener arg0) {
-		listeners.remove(arg0);		
+	public long getId() {
+		return id;
 	}
 	
-	private void fireStateChange() {
-		for (InvalidationListener listener : listeners) {
-			listener.invalidated(this);
-		}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public String getName() {
@@ -53,7 +45,7 @@ public class Weekday implements Observable{
 
 	public void addMenu(Menu menu) {
 		menus.add(menu);
-		fireStateChange();
+		menu.setDay(this);
 	}
 
 	public Date getDate() {
@@ -70,6 +62,14 @@ public class Weekday implements Observable{
 	
 	public void setDayOfWeek(DayOfWeek dayOfWeek) {
 		this.dayOfWeek = dayOfWeek;
+	}
+	
+	public void setWeek(Week week) {
+		this.week = week;		
+	}
+	
+	public Week getWeek() {
+		return week;
 	}
 	
 	@Override

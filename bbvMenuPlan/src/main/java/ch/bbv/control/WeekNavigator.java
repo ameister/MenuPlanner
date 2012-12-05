@@ -6,31 +6,66 @@ import java.util.Set;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import ch.bbv.bo.Menu;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 public class WeekNavigator implements Observable {
-	private static final Calendar cal = Calendar.getInstance();
+	static final Calendar cal = Calendar.getInstance();
 	private Week currentWeek;
 	private final Set<InvalidationListener> listeners = Sets.newHashSet();
-	
-	public Week getCurrentWeek() {
-		if(currentWeek == null) {
-			int currentWeekNumber = cal.get(Calendar.WEEK_OF_YEAR);
-			Week week = new Week();
-			week.setNumber(currentWeekNumber);
-			week.buildDays();
-			fillInMenus(week.getDays());
-			currentWeek = week;
-			fireStateChange();
+	private final EntityManager entityManager;
+
+	public WeekNavigator(EntityManager entityManager) {
+		if (entityManager == null) {
+			throw new IllegalStateException("EntityManager must not be null");
 		}
+		this.entityManager = entityManager;
+	}
+
+	public Week getCurrentWeek() {
+		int currentWeekNumber = cal.get(Calendar.WEEK_OF_YEAR);
+		initWeek(currentWeekNumber);
 		return currentWeek;
 	}
-	
+
+	private void initWeek(int currentWeekNumber) {
+		int year = currentWeek == null ? cal.get(Calendar.YEAR) : currentWeek.getYear();
+		if(currentWeekNumber < 1 ) {
+			currentWeekNumber = 52;
+			year--;
+		}
+		if(currentWeekNumber > 52 ) {
+			currentWeekNumber = 1;
+			year++;
+		}
+		if (currentWeek == null) {
+			TypedQuery<Week> query = entityManager.createNamedQuery("Week.findByNumber", Week.class);
+			query.setParameter("weekNumber", currentWeekNumber);
+			List<Week> weeks = query.getResultList();
+			currentWeek = Iterables.getFirst(weeks, null);
+		}
+		if (currentWeek == null) {
+			entityManager.getTransaction().begin();
+			Week week = new Week();
+			week.setNumber(currentWeekNumber);
+			week.buildDays(year);
+			entityManager.persist(week);
+			for (Weekday day : week.getDays()) {
+				entityManager.persist(day);
+			}
+			entityManager.getTransaction().commit();
+			currentWeek = week;
+		}
+	}
+
 	@VisibleForTesting
 	void setCurrentWeek(Week currentWeek) {
 		this.currentWeek = currentWeek;
@@ -45,33 +80,13 @@ public class WeekNavigator implements Observable {
 	}
 
 	private Week roll(int amount) {
-		Week week = new Week();
-		int newNumber = getCurrentWeek().getNumber() + amount;
-		int year = currentWeek.getYear();
-		if(newNumber < 1 ) {
-			newNumber = 52;
-			year--;
-		}
-		if(newNumber > 52 ) {
-			newNumber = 1;
-			year++;
-		}
-		week.setNumber(newNumber);
-		week.buildDays(year);
-		fillInMenus(week.getDays());
-		currentWeek = week;
+		int newNumber = currentWeek.getNumber() + amount;
+		setCurrentWeek(null);
+		initWeek(newNumber);
 		fireStateChange();
 		return currentWeek;
 	}
 
-	private void fillInMenus(List<Weekday> days) {
-		for (Weekday day : days) {
-			Menu menu = new Menu();
-			menu.setName("Menu " + day.getName());
-			day.addMenu(menu);
-		}
-	}
-	
 	@Override
 	public void addListener(InvalidationListener arg0) {
 		listeners.add(arg0);
@@ -79,9 +94,9 @@ public class WeekNavigator implements Observable {
 
 	@Override
 	public void removeListener(InvalidationListener arg0) {
-		listeners.remove(arg0);		
+		listeners.remove(arg0);
 	}
-	
+
 	private void fireStateChange() {
 		for (InvalidationListener listener : listeners) {
 			listener.invalidated(this);

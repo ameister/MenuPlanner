@@ -3,17 +3,39 @@ package ch.bbv.bo;
 import java.math.BigDecimal;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
 public class CondimentPos {
 	
 	@Id
+	@GeneratedValue
 	private long id;
+	@OneToOne
 	private Condiment condiment;
 	private BigDecimal amount;
 	private String unit;
+	@ManyToOne
+	private Menu menu;
 	
+	public long getId() {
+		return id;
+	}
+	
+	public void setId(long id) {
+		this.id = id;
+	}
+	
+	public Menu getMenu() {
+		return menu;
+	}
+	public void setMenu(Menu menu) {
+		this.menu = menu;
+	}
+
 	public Condiment getCondiment() {
 		return condiment;
 	}
@@ -41,5 +63,4 @@ public class CondimentPos {
 		sb.append(getCondiment());
 		return sb.toString();
 	}
-
 }

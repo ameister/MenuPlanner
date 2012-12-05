@@ -35,7 +35,8 @@ public class MenuPane extends Stage{
 	
 	public MenuPane(MenuController menuController) {
 		this.menuController = menuController;
-		Menu menu = menuController.createMenu();
+		Menu menu = menuController.getCurrentMenu();
+		menuController.beginTransaction();
 		GridPane mainPane = new GridPane();
 		
 		final Node header = createHeader(menu);
@@ -108,8 +109,12 @@ public class MenuPane extends Stage{
 				CondimentPos pos = new CondimentPos();
 				pos.setAmount(new BigDecimal(amountField.getText()));
 				pos.setUnit(unitField.getText());
-				pos.setCondiment(new Condiment(condimentField.getText()));
+				Condiment condiment = new Condiment(condimentField.getText());
+				pos.setCondiment(condiment);
 				data.add(pos);
+				menuController.persist(pos);
+				menuController.persist(condiment);
+				pos.setMenu(menuController.getCurrentMenu());
 			}
 		});
 		hBox.getChildren().addAll(amountField, unitField, condimentField, addButton);

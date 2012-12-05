@@ -1,19 +1,43 @@
 package ch.bbv.control;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 
 public class WeekNavigatorTest {
-	private final WeekNavigator testee = new WeekNavigator();
+	
+	@Mock
+	private EntityManager entityManagerMock;
+	@Mock
+	private EntityTransaction transactionMock;
+	@Mock
+	private TypedQuery<Week> queryMock;
+	private WeekNavigator testee;
+	
+	@Before
+	public void setUp() {
+		MockitoAnnotations.initMocks(this);
+		testee = new WeekNavigator(entityManagerMock);
+		when(entityManagerMock.getTransaction()).thenReturn(transactionMock);
+		when(entityManagerMock.createNamedQuery("Week.findByNumber", Week.class)).thenReturn(queryMock);
+		when(queryMock.getResultList()).thenReturn(new ArrayList<Week>());
+	}
 	
 	
 	@Test
@@ -76,6 +100,24 @@ public class WeekNavigatorTest {
 		cal.setTime(day.getDate());
 		assertEquals("next year expected", Integer.valueOf(expected.get(Calendar.YEAR) + 1), Integer.valueOf(cal.get(Calendar.YEAR)));
 		
+	}
+	
+	@Test 
+	public void getCurrentWeek_currentWeekNull_findCalled() {
+		testee.getCurrentWeek();
+		verify(entityManagerMock).createNamedQuery("Week.findByNumber", Week.class);
+		int currentWeekNumber = WeekNavigator.cal.get(Calendar.WEEK_OF_YEAR);
+		verify(queryMock).setParameter("weekNumber", currentWeekNumber);
+		verify(queryMock).getResultList();
+	}
+
+	@Test 
+	public void getCurrentWeek_currentWeekNotInDB_weekCreated() {
+		Week result = testee.getCurrentWeek();
+		assertNotNull("Week must be created", result);
+		verify(transactionMock).commit();
+		verify(entityManagerMock).persist(eq(result));
+		verify(entityManagerMock, times(8)).persist(any(Weekday.class));
 	}
 
 }

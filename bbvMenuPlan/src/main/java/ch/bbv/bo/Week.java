@@ -5,12 +5,24 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.SequenceGenerator;
 
 import com.google.common.collect.Iterables;
 
 @Entity
+@NamedQueries({
+@NamedQuery(
+name="Week.findByNumber",
+query="SELECT w FROM Week w WHERE w.number = :weekNumber")})
+@SequenceGenerator(name="SEQ_WEEK", sequenceName="week_sequence")
 public class Week {
 	private static final Calendar cal = Calendar.getInstance();
 	public static enum DayOfWeek {
@@ -23,10 +35,21 @@ public class Week {
 		SUNDAY
 	}
 	@Id
+	@GeneratedValue
 	private long id;
 	private int number;
-	private final List<Weekday> days = new ArrayList<Weekday>();
+	@OneToMany(mappedBy = "week", cascade = {CascadeType.PERSIST})
+	@OrderBy("dayOfWeek")
+	private List<Weekday> days = new ArrayList<Weekday>();
+
+	public long getId() {
+		return id;
+	}
 	
+	public void setId(long id) {
+		this.id = id;
+	}
+
 	public int getNumber() {
 		return number;
 	}
@@ -37,12 +60,16 @@ public class Week {
 	
 	private void addDay(Weekday day) {
 		days.add(day);
+		day.setWeek(this);
 	}
 
 	public List<Weekday> getDays() {
 		return days;
 	}
-
+	public void setDays(List<Weekday> days) {
+		this.days = days;
+	}
+	
 	public List<Menu> getMenus() {
 
 		List<Menu> menus = new ArrayList<Menu>();
