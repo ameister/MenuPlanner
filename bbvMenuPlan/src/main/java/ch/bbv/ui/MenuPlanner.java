@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -28,12 +29,14 @@ import javafx.util.Callback;
 import ch.bbv.bo.Menu;
 import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
+import ch.bbv.control.MenuController;
 import ch.bbv.control.WeekNavigator;
 
 import com.google.common.collect.Lists;
 import com.sun.javafx.collections.ObservableListWrapper;
 
 //TODO
+// - init week correct
 // - refactor:
 // -- clean up ui
 // - Auto rezeise?
@@ -45,7 +48,7 @@ public class MenuPlanner extends Application {
 	private final WeekNavigator weekNavigator = new WeekNavigator();
 	private List<TableView<Menu>> tables = Lists.newArrayList();
 	private List<Node> tableFooters = Lists.newArrayList();
-	
+
 	private Stage mainStage;
 
 	public static void main(String[] args) {
@@ -57,7 +60,7 @@ public class MenuPlanner extends Application {
 		primaryStage.setTitle("Menu Planner");
 		Group group = new Group();
 		Scene scene = new Scene(group);
-		primaryStage.setWidth(500);
+		primaryStage.setWidth(700);
 		primaryStage.setHeight(500);
 
 		final Label label = new Label("Menu Plan Week 1");
@@ -85,14 +88,14 @@ public class MenuPlanner extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		mainStage = primaryStage;
-//		initHibernate();
+		// initHibernate();
 	}
-	
-//	private void initHibernate() {
-//		 new Configuration()
-//         .configure()
-//         .buildSessionFactory(); // configures settings from hibernate.cfg.xml
-//	}
+
+	// private void initHibernate() {
+	// new Configuration()
+	// .configure()
+	// .buildSessionFactory(); // configures settings from hibernate.cfg.xml
+	// }
 
 	private void refresh(final Label label, final GridPane pane) {
 		label.setText(weekNavigator.getCurrentWeek().toString());
@@ -126,35 +129,26 @@ public class MenuPlanner extends Application {
 		return box;
 	}
 
-	private Node createTableFooter(final Weekday day,
-			final ObservableList<Menu> data) {
+	private Node createTableFooter(final Weekday day, final ObservableList<Menu> data) {
 		HBox box = new HBox();
 		Button createMenuBtn = new Button("Add Menu");
 		createMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
 			public void handle(ActionEvent event) {
-				Menu menu = new Menu();
-				menu.setName("SchniPo " + day.getMenus().size());
-				data.add(menu);
-				showDialog();
+				showDialog(day, data);
 			}
 		});
 		box.getChildren().add(createMenuBtn);
 		return box;
 	}
 
-	private void showDialog() {
-		Stage stage = new Stage();
-		Group group = new Group();
-		Scene page2 = new Scene(group);
-		group.getChildren().addAll(new MenuPane());
-		
-		stage.setScene(page2);
-		stage.initOwner(mainStage);
-		stage.initModality( Modality.APPLICATION_MODAL);
-		stage.show();
-		
+	private void showDialog(Weekday dayToAddMenu, ObservableList<Menu> menus) {
+		MenuPane dialog = new MenuPane(new MenuController(menus));
+		dialog.initOwner(mainStage);
+		dialog.initModality(Modality.APPLICATION_MODAL);
+		dialog.sizeToScene();
+		dialog.show();
 	}
 
 	private void fillTable(GridPane pane) {
@@ -165,24 +159,23 @@ public class MenuPlanner extends Application {
 		Week week = weekNavigator.getCurrentWeek();
 		int i = 0;
 		for (Weekday day : week.getDays()) {
-			ObservableList<Menu> data = new ObservableListWrapper<Menu>(
-					day.getMenus());
+			ObservableList<Menu> data = new ObservableListWrapper<Menu>(day.getMenus());
 			TableView<Menu> table = new TableView<Menu>(data);
-			TableColumn<Menu, String> column = new TableColumn<Menu, String>(
-					day.getName());
+			TableColumn<Menu, String> column = new TableColumn<Menu, String>(day.getName());
 			column.setCellValueFactory(new Callback<CellDataFeatures<Menu, String>, ObservableValue<String>>() {
-				public ObservableValue<String> call(
-						CellDataFeatures<Menu, String> p) {
+				public ObservableValue<String> call(CellDataFeatures<Menu, String> p) {
 					// p.getValue() returns the Person instance for a particular
 					// TableView row
 					return new ReadOnlyObjectWrapper<String>(p.getValue()
 							.getName());
 				}
 			});
+
 			table.getColumns().add(column);
 			tables.add(table);
 			table.setEditable(true);
-			table.setPrefSize(70, 200);
+			column.setPrefWidth(90);
+			table.setPrefSize(92, 200);
 			Node tableFooter = createTableFooter(day, data);
 			tableFooters.add(tableFooter);
 			pane.addColumn(i++, table, tableFooter);
