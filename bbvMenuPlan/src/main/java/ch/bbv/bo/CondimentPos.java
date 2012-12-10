@@ -54,6 +54,9 @@ public class CondimentPos {
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
+	public String getCondimentName() {
+		return getCondiment() == null ? null : getCondiment().getName();
+	}
 	
 	@Override
 	public String toString() {
@@ -63,4 +66,5 @@ public class CondimentPos {
 		sb.append(getCondiment());
 		return sb.toString();
 	}
+
 }

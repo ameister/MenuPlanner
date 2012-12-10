@@ -71,7 +71,6 @@ public class Week {
 	}
 	
 	public List<Menu> getMenus() {
-
 		List<Menu> menus = new ArrayList<Menu>();
 		for (Weekday day : getDays()) {
 			menus.addAll(day.getMenus());

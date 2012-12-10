@@ -17,6 +17,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.google.common.collect.Lists;
+
+import ch.bbv.bo.Menu;
 import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 
@@ -117,7 +120,38 @@ public class WeekNavigatorTest {
 		assertNotNull("Week must be created", result);
 		verify(transactionMock).commit();
 		verify(entityManagerMock).persist(eq(result));
-		verify(entityManagerMock, times(8)).persist(any(Weekday.class));
+	}
+	
+	@Test
+	public void reset_nextCalled_weekResetted() {
+		testee.next();
+		Week result = testee.reset();
+		Calendar expected = Calendar.getInstance();
+		Calendar actual = Calendar.getInstance();
+		for (Weekday weekday : result.getDays()) {
+			actual.setTime(weekday.getDate());
+			if(expected.get(Calendar.DAY_OF_YEAR) == actual.get(Calendar.DAY_OF_YEAR)){
+				return;
+			}
+		}
+		fail("Week current Date containing expected");
+	}
+	
+	@Test 
+	public void getCurrentWeeksMenus_weekWithMenus_allMenusReturned() {
+		Week week = mock(Week.class);
+		List<Menu> menus = Lists.newArrayList();
+		List<Weekday> days = Lists.newArrayList();
+		for (int i = 0; i < 10; i++) {
+			Weekday day = new Weekday();
+			Menu menu = new Menu();
+			menus.add(menu);
+			day.addMenu(menu);
+			days.add(day);
+		}
+		when(week.getMenus()).thenReturn(menus);
+		testee.setCurrentWeek(week);
+		assertEquals("All Menu must be contained", menus.size(), testee.getCurrentWeeksMenus().size());
 	}
 
 }

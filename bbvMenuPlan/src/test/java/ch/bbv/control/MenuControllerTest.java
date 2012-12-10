@@ -26,18 +26,19 @@ public class MenuControllerTest {
 	private EntityManager entityManagerMock;
 	@Mock
 	private Weekday weekday;
+	@Mock
+	private EntityTransaction transactionMock;
 	private MenuController testee;
 	
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		testee = new MenuController(menuListMock, weekday, entityManagerMock);
+		when(entityManagerMock.getTransaction()).thenReturn(transactionMock);
 	}
 	
 	@Test
 	public void commit_currentMenu_menuAdded() throws Exception{
-		EntityTransaction transactionMock = mock(EntityTransaction.class);
-		when(entityManagerMock.getTransaction()).thenReturn(transactionMock);
 		testee.createMenu();
 		testee.commit();
 		verify(menuListMock).add(any(Menu.class));
@@ -47,8 +48,6 @@ public class MenuControllerTest {
 
 	@Test
 	public void rollback_currentMenu_rollbackAndClear() throws Exception{
-		EntityTransaction transactionMock = mock(EntityTransaction.class);
-		when(entityManagerMock.getTransaction()).thenReturn(transactionMock);
 		testee.createMenu();
 		testee.rollback();
 		verify(transactionMock).rollback();
@@ -57,6 +56,13 @@ public class MenuControllerTest {
 	public void getCurrentMenu_currentMenuNull_menuCreated() throws Exception{
 		Menu result = testee.getCurrentMenu();
 		assertNotNull("Current Menu must be created", result);
+	}
+	@Test
+	public void commit_currentMenuInList_notAdded() throws Exception{
+		when(menuListMock.contains(any(Menu.class))).thenReturn(Boolean.TRUE);
+		Menu result = testee.getCurrentMenu();
+		testee.commit();
+		verify(menuListMock, times(0)).add(eq(result));
 	}
 
 }

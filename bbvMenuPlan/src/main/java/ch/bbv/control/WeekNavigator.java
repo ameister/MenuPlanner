@@ -10,8 +10,8 @@ import javafx.beans.Observable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import ch.bbv.bo.Menu;
 import ch.bbv.bo.Week;
-import ch.bbv.bo.Weekday;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -37,7 +37,7 @@ public class WeekNavigator implements Observable {
 	}
 
 	private void initWeek(int currentWeekNumber) {
-		int year = currentWeek == null ? cal.get(Calendar.YEAR) : currentWeek.getYear();
+		int year = getYearOfWeek();
 		if(currentWeekNumber < 1 ) {
 			currentWeekNumber = 52;
 			year--;
@@ -47,23 +47,32 @@ public class WeekNavigator implements Observable {
 			year++;
 		}
 		if (currentWeek == null) {
-			TypedQuery<Week> query = entityManager.createNamedQuery("Week.findByNumber", Week.class);
-			query.setParameter("weekNumber", currentWeekNumber);
-			List<Week> weeks = query.getResultList();
-			currentWeek = Iterables.getFirst(weeks, null);
+			currentWeek = loadWeek(currentWeekNumber);
 		}
 		if (currentWeek == null) {
 			entityManager.getTransaction().begin();
-			Week week = new Week();
-			week.setNumber(currentWeekNumber);
-			week.buildDays(year);
-			entityManager.persist(week);
-			for (Weekday day : week.getDays()) {
-				entityManager.persist(day);
-			}
+			currentWeek = createWeek(currentWeekNumber, year);
+			entityManager.persist(currentWeek);
 			entityManager.getTransaction().commit();
-			currentWeek = week;
 		}
+	}
+
+	private int getYearOfWeek() {
+		return currentWeek == null ? cal.get(Calendar.YEAR) : currentWeek.getYear();
+	}
+
+	private Week loadWeek(int currentWeekNumber) {
+		TypedQuery<Week> query = entityManager.createNamedQuery("Week.findByNumber", Week.class);
+		query.setParameter("weekNumber", currentWeekNumber);
+		List<Week> weeks = query.getResultList();
+		return Iterables.getFirst(weeks, null);
+	}
+
+	private Week createWeek(int currentWeekNumber, int year) {
+		Week week = new Week();
+		week.setNumber(currentWeekNumber);
+		week.buildDays(year);
+		return week;
 	}
 
 	@VisibleForTesting
@@ -80,11 +89,15 @@ public class WeekNavigator implements Observable {
 	}
 
 	private Week roll(int amount) {
-		int newNumber = currentWeek.getNumber() + amount;
+		int newNumber = getWeekNumber() + amount;
 		setCurrentWeek(null);
 		initWeek(newNumber);
 		fireStateChange();
 		return currentWeek;
+	}
+
+	private int getWeekNumber() {
+		return currentWeek == null ? cal.get(Calendar.WEEK_OF_YEAR) : currentWeek.getNumber();
 	}
 
 	@Override
@@ -101,6 +114,17 @@ public class WeekNavigator implements Observable {
 		for (InvalidationListener listener : listeners) {
 			listener.invalidated(this);
 		}
+	}
+
+	public Week reset() {
+		setCurrentWeek(null);
+		Week week = getCurrentWeek();
+		fireStateChange();
+		return week;
+	}
+
+	public List<Menu> getCurrentWeeksMenus() {
+		return getCurrentWeek().getMenus();
 	}
 
 }

@@ -29,43 +29,38 @@ import ch.bbv.control.MenuController;
 import com.sun.javafx.collections.ObservableListWrapper;
 
 //TODO size and position
-public class MenuPane extends Stage{
-	 private final MenuController menuController;
+// Binding
+public class MenuPane extends Stage {
+	private final MenuController menuController;
 	private TextField nameField;
-	
+
 	public MenuPane(MenuController menuController) {
 		this.menuController = menuController;
 		Menu menu = menuController.getCurrentMenu();
 		menuController.beginTransaction();
+		setTitle("Menu bearbeiten");
 		GridPane mainPane = new GridPane();
-		
+
 		final Node header = createHeader(menu);
-		
-		ObservableList<CondimentPos> data = new ObservableListWrapper<CondimentPos>(
-				menu.getCondiments());
+
+		ObservableList<CondimentPos> data = new ObservableListWrapper<CondimentPos>(menu.getCondiments());
 		TableView<CondimentPos> table = new TableView<CondimentPos>(data);
 		TableColumn<CondimentPos, BigDecimal> column1 = new TableColumn<CondimentPos, BigDecimal>("Menge");
 		TableColumn<CondimentPos, String> column2 = new TableColumn<CondimentPos, String>("Einheit");
 		TableColumn<CondimentPos, Condiment> column3 = new TableColumn<CondimentPos, Condiment>("Zutat");
 		column1.setCellValueFactory(new Callback<CellDataFeatures<CondimentPos, BigDecimal>, ObservableValue<BigDecimal>>() {
-			public ObservableValue<BigDecimal> call(
-					CellDataFeatures<CondimentPos, BigDecimal> p) {
-				return new ReadOnlyObjectWrapper<BigDecimal>(p.getValue()
-						.getAmount());
+			public ObservableValue<BigDecimal> call(CellDataFeatures<CondimentPos, BigDecimal> p) {
+				return new ReadOnlyObjectWrapper<BigDecimal>(p.getValue().getAmount());
 			}
 		});
 		column2.setCellValueFactory(new Callback<CellDataFeatures<CondimentPos, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(
-					CellDataFeatures<CondimentPos, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue()
-						.getUnit());
+			public ObservableValue<String> call(CellDataFeatures<CondimentPos, String> p) {
+				return new ReadOnlyObjectWrapper<String>(p.getValue().getUnit());
 			}
 		});
 		column3.setCellValueFactory(new Callback<CellDataFeatures<CondimentPos, Condiment>, ObservableValue<Condiment>>() {
-			public ObservableValue<Condiment> call(
-					CellDataFeatures<CondimentPos, Condiment> p) {
-				return new ReadOnlyObjectWrapper<Condiment>(p.getValue()
-						.getCondiment());
+			public ObservableValue<Condiment> call(CellDataFeatures<CondimentPos, Condiment> p) {
+				return new ReadOnlyObjectWrapper<Condiment>(p.getValue().getCondiment());
 			}
 		});
 		table.setPrefSize(510, 200);
@@ -76,15 +71,15 @@ public class MenuPane extends Stage{
 		table.getColumns().add(column1);
 		table.getColumns().add(column2);
 		table.getColumns().add(column3);
-		
+
 		mainPane.addRow(0, header);
 		mainPane.addRow(1, table);
 		mainPane.addRow(2, createFooter(data));
 		mainPane.addRow(3, createButtonBox());
 		Group group = new Group();
-		Scene page2 = new Scene(group, 600, 340);
+		Scene scene = new Scene(group, 600, 340);
 		group.getChildren().add(mainPane);
-		setScene(page2);
+		setScene(scene);
 	}
 
 	private Node createHeader(Menu menu) {
@@ -95,7 +90,7 @@ public class MenuPane extends Stage{
 		box.getChildren().addAll(nameLabel, nameField);
 		return box;
 	}
-	
+
 	private Node createFooter(final List<CondimentPos> data) {
 		HBox hBox = new HBox();
 		final TextField amountField = new TextField("Menge");
@@ -103,7 +98,6 @@ public class MenuPane extends Stage{
 		final TextField condimentField = new TextField("Zutat");
 		Button addButton = new Button();
 		addButton.setOnAction(new EventHandler<ActionEvent>() {
-
 			@Override
 			public void handle(ActionEvent event) {
 				CondimentPos pos = new CondimentPos();
@@ -120,12 +114,12 @@ public class MenuPane extends Stage{
 		hBox.getChildren().addAll(amountField, unitField, condimentField, addButton);
 		return hBox;
 	}
-	
+
 	private Node createButtonBox() {
 		HBox hBox = new HBox();
 		Button okButton = new Button("Ok");
 		okButton.setOnAction(new EventHandler<ActionEvent>() {
-			
+
 			@Override
 			public void handle(ActionEvent event) {
 				menuController.getCurrentMenu().setName(nameField.getText());
@@ -135,7 +129,7 @@ public class MenuPane extends Stage{
 		});
 		Button cancelButton = new Button("Cancel");
 		cancelButton.setOnAction(new EventHandler<ActionEvent>() {
-			
+
 			@Override
 			public void handle(ActionEvent event) {
 				menuController.rollback();

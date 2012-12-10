@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
 import ch.bbv.bo.Menu;
@@ -47,8 +48,6 @@ import com.sun.javafx.collections.ObservableListWrapper;
 // - refactor:
 // -- clean up ui
 // - Auto rezeise?
-// - Context Menu for new Menus
-//
 
 public class MenuPlanner extends Application {
 
@@ -58,6 +57,7 @@ public class MenuPlanner extends Application {
 
 	private Stage mainStage;
 	private EntityManager em;
+	private final GridPane mainPane = new GridPane();
 
 	public static void main(String[] args) {
 		launch(args);
@@ -76,38 +76,35 @@ public class MenuPlanner extends Application {
 		final Label label = new Label("Menu Plan Week 1");
 		label.setFont(new Font("Arial", 20));
 
-		final GridPane pane = new GridPane();
-		fillTable(pane);
+		fillTable();
 
 		Node box = createButtonBox(label);
 
 		InvalidationListener listener = new InvalidationListener() {
-
 			@Override
 			public void invalidated(Observable arg0) {
-				refresh(label, pane);
+				refresh(label);
 			}
-
 		};
 		weekNavigator.addListener(listener);
 		VBox vBox = new VBox();
-		vBox.getChildren().addAll(box, pane);
+		vBox.getChildren().addAll(box, mainPane, createFooter());
 
 		group.getChildren().addAll(vBox);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		mainStage = primaryStage;
-		refresh(label, pane);
+		refresh(label);
 	}
 
 	private void initHibernate() {
 		em = Persistence.createEntityManagerFactory("HibernateApp").createEntityManager();
 	}
 
-	private void refresh(final Label label, final GridPane pane) {
+	private void refresh(final Label label) {
 		label.setText(weekNavigator.getCurrentWeek().toString());
-		fillTable(pane);
+		fillTable();
 	}
 
 	private Node createButtonBox(final Label label) {
@@ -129,11 +126,21 @@ public class MenuPlanner extends Application {
 				weekNavigator.previous();
 			}
 		});
+		Button resetBtn = new Button();
+		resetBtn.setText("Reset");
+		resetBtn.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				weekNavigator.reset();
+			}
+		});
 
 		HBox box = new HBox();
 		box.getChildren().add(prevBtn);
 		box.getChildren().add(label);
 		box.getChildren().add(nextBtn);
+		box.getChildren().add(resetBtn);
 		return box;
 	}
 
@@ -150,6 +157,25 @@ public class MenuPlanner extends Application {
 		box.getChildren().add(createMenuBtn);
 		return box;
 	}
+	
+	private Node createFooter() {
+		HBox box = new HBox();
+		Button generateListBtn = new Button("Generiere Einkaufsliste");
+		generateListBtn.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				List<Menu> currentWeeksMenus = weekNavigator.getCurrentWeeksMenus();
+				ShoppinglistStage stage = new ShoppinglistStage(currentWeeksMenus);
+				stage.initOwner(mainStage);
+				stage.initModality(Modality.APPLICATION_MODAL);
+				stage.sizeToScene();
+				stage.show();
+			}
+		});
+		box.getChildren().add(generateListBtn);
+		return box;
+	}
 
 	private void showDialog(Menu currentMenu, Weekday dayToAddMenu, List<Menu> menus) {
 		MenuController menuController = new MenuController(menus, dayToAddMenu, em);
@@ -161,9 +187,10 @@ public class MenuPlanner extends Application {
 		dialog.show();
 	}
 
-	private void fillTable(GridPane pane) {
-		pane.getChildren().removeAll(tables);
-		pane.getChildren().removeAll(tableFooters);
+	//TODO show all Menu
+	private void fillTable() {
+		mainPane.getChildren().removeAll(tables);
+		mainPane.getChildren().removeAll(tableFooters);
 		tableFooters.clear();
 		tables.clear();
 		Week week = weekNavigator.getCurrentWeek();
@@ -174,8 +201,6 @@ public class MenuPlanner extends Application {
 			TableColumn<Menu, String> column = new TableColumn<Menu, String>(day.getName());
 			column.setCellValueFactory(new Callback<CellDataFeatures<Menu, String>, ObservableValue<String>>() {
 				public ObservableValue<String> call(CellDataFeatures<Menu, String> p) {
-					// p.getValue() returns the Person instance for a particular
-					// TableView row
 					return new ReadOnlyObjectWrapper<String>(p.getValue().getName());
 				}
 			});
@@ -188,26 +213,38 @@ public class MenuPlanner extends Application {
 			table.setPrefSize(92, 200);
 			Node tableFooter = createTableFooter(day, data);
 			tableFooters.add(tableFooter);
-			pane.addColumn(i++, table, tableFooter);
+			mainPane.addColumn(i++, table, tableFooter);
 		}
 	}
-	
+
 	private void addContextMenu(final TableView<Menu> table, final Weekday dayofEditedMenu, final List<Menu> menus) {
 		final ContextMenu cm = new ContextMenu();
 		MenuItem cmItem1 = new MenuItem("Edit");
 		cmItem1.setOnAction(new EventHandler<ActionEvent>() {
-		    public void handle(ActionEvent e) {
-		    	showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
-		    }
+			public void handle(ActionEvent e) {
+				showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
+			}
+		});
+		MenuItem cmItem2 = new MenuItem("Delete");
+		cmItem2.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent e) {
+				EntityTransaction transaction = em.getTransaction();
+				transaction.begin();
+				Menu menu = table.getSelectionModel().getSelectedItem();
+				menus.remove(menu);
+				em.remove(menu);
+				transaction.commit();
+			}
 		});
 
 		cm.getItems().add(cmItem1);
-		table.addEventHandler(MouseEvent.MOUSE_CLICKED,
-		    new EventHandler<MouseEvent>() {
-		        @Override public void handle(MouseEvent e) {
-		            if (e.getButton() == MouseButton.SECONDARY)  
-		                cm.show(mainStage, e.getScreenX(), e.getScreenY());
-		        }
+		cm.getItems().add(cmItem2);
+		table.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				if (e.getButton() == MouseButton.SECONDARY)
+					cm.show(mainStage, e.getScreenX(), e.getScreenY());
+			}
 		});
 	}
 

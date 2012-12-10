@@ -13,14 +13,15 @@ public class MenuController {
 	private final List<Menu> menuListToAddMenu;
 	private final EntityManager entityManager;
 	private final Weekday day;
+	private Menu currentMenu;
 
+	//TODO move Menu
+	//TODO remove Menu
 	public MenuController(List<Menu> menus, Weekday day, EntityManager entityManager) {
 		this.menuListToAddMenu = menus;
 		this.day = day;
 		this.entityManager = entityManager;
 	}
-
-	private Menu currentMenu;
 
 	Menu createMenu() {
 		currentMenu = new Menu();
@@ -40,6 +41,9 @@ public class MenuController {
 
 	public void beginTransaction() {
 		EntityTransaction transaction = entityManager.getTransaction();
+		if(currentMenu != null) {
+			entityManager.merge(currentMenu);
+		}
 		transaction.begin();
 	}
 	
@@ -48,16 +52,17 @@ public class MenuController {
 	}
 	
 	public void commit() {
-		menuListToAddMenu.add(currentMenu);
+		if(!menuListToAddMenu.contains(currentMenu)){
+			menuListToAddMenu.add(currentMenu);
+			currentMenu.setDay(day);
+		}
 		entityManager.persist(currentMenu);
-		currentMenu.setDay(day);
 		commitTransaction();
 		clear();
 	}
 
 	public void commitTransaction() {
-		EntityTransaction transaction = entityManager.getTransaction();
-		transaction.commit();
+		entityManager.getTransaction().commit();
 	}
 
 	public void rollback() {
