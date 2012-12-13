@@ -32,12 +32,11 @@ public class WeekNavigator implements Observable {
 
 	public Week getCurrentWeek() {
 		int currentWeekNumber = cal.get(Calendar.WEEK_OF_YEAR);
-		initWeek(currentWeekNumber);
+		initWeek(currentWeekNumber, getYearOfWeek());
 		return currentWeek;
 	}
 
-	private void initWeek(int currentWeekNumber) {
-		int year = getYearOfWeek();
+	private void initWeek(int currentWeekNumber, int year) {
 		if(currentWeekNumber < 1 ) {
 			currentWeekNumber = 52;
 			year--;
@@ -47,7 +46,7 @@ public class WeekNavigator implements Observable {
 			year++;
 		}
 		if (currentWeek == null) {
-			currentWeek = loadWeek(currentWeekNumber);
+			currentWeek = loadWeek(currentWeekNumber, year);
 		}
 		if (currentWeek == null) {
 			entityManager.getTransaction().begin();
@@ -61,9 +60,10 @@ public class WeekNavigator implements Observable {
 		return currentWeek == null ? cal.get(Calendar.YEAR) : currentWeek.getYear();
 	}
 
-	private Week loadWeek(int currentWeekNumber) {
+	private Week loadWeek(int currentWeekNumber, int year) {
 		TypedQuery<Week> query = entityManager.createNamedQuery("Week.findByNumber", Week.class);
 		query.setParameter("weekNumber", currentWeekNumber);
+		query.setParameter("year", year);
 		List<Week> weeks = query.getResultList();
 		return Iterables.getFirst(weeks, null);
 	}
@@ -90,8 +90,9 @@ public class WeekNavigator implements Observable {
 
 	private Week roll(int amount) {
 		int newNumber = getWeekNumber() + amount;
+		int year = getYearOfWeek();
 		setCurrentWeek(null);
-		initWeek(newNumber);
+		initWeek(newNumber, year);
 		fireStateChange();
 		return currentWeek;
 	}

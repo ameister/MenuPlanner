@@ -12,11 +12,13 @@ import ch.bbv.bo.Week.DayOfWeek;
 
 public class WeekTest {
 	
+	private Calendar cal = Calendar.getInstance();
+
 	@Test
 	public void getDays_daysFilled_correctOrder() {
 		Week testee = new Week();
 		testee.setNumber(1);
-		testee.buildDays();
+		testee.buildDays(cal.get(Calendar.YEAR));
 		List<Weekday> result = testee.getDays();
 		Assert.assertEquals(7, result.size());
 		int i = 0;
@@ -29,9 +31,8 @@ public class WeekTest {
 	public void getDays_week1Year2012_20120102(){
 		Week testee = new Week();
 		testee.setNumber(1);
-		testee.buildDays();
+		testee.buildDays(cal.get(Calendar.YEAR));
 		List<Weekday> result = testee.getDays();
-		Calendar cal = Calendar.getInstance();
 		cal.setTime(Iterables.getFirst(result, null).getDate());
 		Calendar expected = Calendar.getInstance();
 		expected.set(2012, 0, 2);

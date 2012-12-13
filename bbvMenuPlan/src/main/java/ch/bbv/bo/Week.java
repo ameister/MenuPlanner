@@ -2,10 +2,10 @@ package ch.bbv.bo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 @NamedQueries({
 @NamedQuery(
 name="Week.findByNumber",
-query="SELECT w FROM Week w WHERE w.number = :weekNumber")})
+query="SELECT w FROM Week w WHERE w.number = :weekNumber AND w.year = :year")})
 @SequenceGenerator(name="SEQ_WEEK", sequenceName="week_sequence")
 public class Week {
 	private static final Calendar cal = Calendar.getInstance();
@@ -37,7 +37,10 @@ public class Week {
 	@Id
 	@GeneratedValue
 	private long id;
+	@Column(nullable = false)
 	private int number;
+	@Column(nullable = false, name= "WEEK_YEAR")
+	private int year;
 	@OneToMany(mappedBy = "week", cascade = {CascadeType.PERSIST})
 	@OrderBy("dayOfWeek")
 	private List<Weekday> days = new ArrayList<Weekday>();
@@ -56,6 +59,14 @@ public class Week {
 	
 	public void setNumber(int number) {
 		this.number = number;
+	}
+	
+	public void setYear(int year) {
+		this.year = year;
+	}
+	
+	public int getYear() {
+		return year;
 	}
 	
 	private void addDay(Weekday day) {
@@ -97,16 +108,6 @@ public class Week {
 			cal.add(Calendar.DATE, 1);
 			addDay(day);
 		}
-	}
-
-	public int getYear() {
-		cal.setTime(getDays().get(6).getDate());
-		return cal.get(Calendar.YEAR);
-	}
-
-	public void buildDays() {
-		cal.setTime(new Date());
-		buildDays(cal.get(Calendar.YEAR));
-		
+		setYear(year);
 	}
 }
