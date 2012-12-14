@@ -3,8 +3,14 @@ package ch.bbv.bo;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 @Entity
+@NamedQueries({
+@NamedQuery(
+name="Condiment.findAll",
+query="SELECT c FROM Condiment c")})
 public class Condiment {
 	
 	@Id

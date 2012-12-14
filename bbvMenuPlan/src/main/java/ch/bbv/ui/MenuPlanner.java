@@ -10,6 +10,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -19,7 +22,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
@@ -58,7 +60,6 @@ public class MenuPlanner extends Application {
 	private Stage mainStage;
 	private EntityManager em;
 	private final GridPane mainPane = new GridPane();
-	private static final DataFormat menuDataFormat = new DataFormat("Object");
 	private Menu selectedMenu;
 	private MenuTicker menuTicker;
 
@@ -73,6 +74,7 @@ public class MenuPlanner extends Application {
 		primaryStage.setTitle("Menu Planner");
 		Group group = new Group();
 		Scene scene = new Scene(group);
+//		scene.getStylesheets().add("/style.css");
 		primaryStage.setWidth(700);
 		primaryStage.setHeight(500);
 		mainStage = primaryStage;
@@ -91,14 +93,27 @@ public class MenuPlanner extends Application {
 			}
 		};
 		weekNavigator.addListener(listener);
-		VBox vBox = new VBox();
-		vBox.getChildren().addAll(box, mainPane, createFooter());
+		calibrateMainPane();
+		GridPane pane = new GridPane();
+		pane.setHgap(5);
+		pane.setVgap(5);
+		pane.setPadding(new Insets(5));
+		Node footer = createFooter();
+		pane.addRow(0, box);
+		pane.addRow(1, mainPane);
+		pane.addRow(2, footer);
+		GridPane.setHalignment(footer, HPos.RIGHT);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		menuTicker = new MenuTicker(scene);
-		group.getChildren().addAll(vBox, menuTicker);
+		group.getChildren().addAll(pane, menuTicker);
 		refresh(label);
+	}
+	
+	private void calibrateMainPane() {
+		mainPane.setHgap(5);
+		mainPane.setVgap(5);
 	}
 
 	private void initHibernate() {
@@ -140,6 +155,8 @@ public class MenuPlanner extends Application {
 		});
 
 		HBox box = new HBox();
+		box.setPadding(new Insets(5));
+		box.setSpacing(5.0);
 		box.getChildren().add(prevBtn);
 		box.getChildren().add(label);
 		box.getChildren().add(nextBtn);
@@ -148,7 +165,6 @@ public class MenuPlanner extends Application {
 	}
 
 	private Node createTableFooter(final Weekday day, final ObservableList<Menu> data) {
-		HBox box = new HBox();
 		Button createMenuBtn = new Button("Add Menu");
 		createMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -157,12 +173,10 @@ public class MenuPlanner extends Application {
 				showDialog(null, day, data);
 			}
 		});
-		box.getChildren().add(createMenuBtn);
-		return box;
+		return createMenuBtn;
 	}
 
 	private Node createFooter() {
-		HBox box = new HBox();
 		Button generateListBtn = new Button("Generiere Einkaufsliste");
 		generateListBtn.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -176,8 +190,7 @@ public class MenuPlanner extends Application {
 				stage.show();
 			}
 		});
-		box.getChildren().add(generateListBtn);
-		return box;
+		return generateListBtn;
 	}
 
 	private void showDialog(Menu currentMenu, Weekday dayToAddMenu, List<Menu> menus) {
@@ -190,7 +203,6 @@ public class MenuPlanner extends Application {
 		dialog.show();
 	}
 
-	// TODO show all Menu
 	private void initMenuListViews() {
 		mainPane.getChildren().removeAll(nodesToRemove);
 		nodesToRemove.clear();
@@ -208,8 +220,10 @@ public class MenuPlanner extends Application {
 			addContextMenu(listView, day, data);
 			listView.setPrefSize(92, 200);
 			mainPane.addColumn(i++, listHeader, listView, tableFooter);
+			GridPane.setHalignment(tableFooter, HPos.CENTER);
 			addDragAndDrop(listView, day);
 			addSelectonListener(listView);
+			addFocusListener(listView);
 		}
 	}
 	
@@ -217,77 +231,79 @@ public class MenuPlanner extends Application {
 		listView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Menu>() {
 			@Override
 			public void changed(ObservableValue<? extends Menu> ov, Menu oldSelection, Menu newSelection) {
-				menuTicker.refresh(newSelection.getTickerText());
+				if(newSelection != null) {
+					menuTicker.refresh(newSelection.getTickerText());
+				}
+			}
+		});
+	}
+	
+	private void addFocusListener(final ListView<Menu> listView) {
+		listView.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+				if(newValue.booleanValue()) {
+					Menu selectedItem = listView.getSelectionModel().getSelectedItem();
+					if(selectedItem != null) {
+						menuTicker.refresh(selectedItem.getTickerText());
+					}
+				}
 			}
 		});
 	}
 
-	private void addDragAndDrop(final ListView<Menu> source, final Weekday day) {
-		source.setOnDragDetected(new EventHandler<MouseEvent>() {
+	private void addDragAndDrop(final ListView<Menu> listView, final Weekday day) {
+		listView.setOnDragDetected(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
-				/* drag was detected, start a drag-and-drop gesture */
-				/* allow any transfer mode */
-				Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
-
-				/* Put a string on a dragboard */
-				ClipboardContent content = new ClipboardContent();
-				selectedMenu = source.getSelectionModel().getSelectedItem();
-				content.put(menuDataFormat, selectedMenu);
-				db.setContent(content);
-
-				event.consume();
-			}
-		});
-		source.setOnDragExited(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				
-
+				Menu selectedMenu = listView.getSelectionModel().getSelectedItem();
+				if(selectedMenu != null) {
+					Dragboard db = listView.startDragAndDrop(TransferMode.MOVE);
+					ClipboardContent content = new ClipboardContent();
+					content.putString("" + selectedMenu.getId());
+					db.setContent(content);
+				}
 				event.consume();
 			}
 		});
 		
-		source.setOnDragOver(new EventHandler<DragEvent>() {
+		listView.setOnDragOver(new EventHandler<DragEvent>() {
 		    public void handle(DragEvent event) {
-		        /* data is dragged over the target */
-		        /* accept it only if it is not dragged from the same node 
-		         * and if it has a string data */
 		    	Dragboard db = event.getDragboard();
-				boolean hasContent = db.hasContent(menuDataFormat);
-				boolean same = event.getSource() == source;
-				if (!same) {
-		            /* allow for both copying and moving, whatever user chooses */
+				boolean hasContent = db.hasString();
+				boolean same = event.getGestureSource().equals(listView);
+				if (!same && hasContent) {
 		            event.acceptTransferModes(TransferMode.MOVE);
-		            System.out.println("notsame");
 		        }
-				System.out.println("bla");
-		        
 		        event.consume();
 		    }
 		});
 
-		source.setOnDragDropped(new EventHandler<DragEvent>() {
+		listView.setOnDragDropped(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
-				/* data dropped */
-				/* if there is a Menu data on dragboard, read it and use it */
 				Dragboard db = event.getDragboard();
 				boolean success = false;
-				ListView<Menu> dragSource = ((ListView<Menu>) event.getSource());
-				if (!dragSource.equals(source)) {
-					source.getItems().add(selectedMenu);
-					selectedMenu.setDay(day);
-					dragSource.getItems().remove(selectedMenu);
-					success = true;
+				@SuppressWarnings("unchecked")
+				ListView<Menu> dragSource = ((ListView<Menu>) event.getGestureSource());
+				if (!dragSource.equals(listView) && db.hasString()) {
+					Long id = Long.parseLong(db.getString());
+					List<Menu> menus = dragSource.getItems();
+					em.getTransaction().begin();
+					Menu menuToMove = null;
+					for (Menu menu : menus) {
+						if(menu.getId() == id.longValue()) {
+							listView.getItems().add(menu);
+							menu.setDay(day);
+							menuToMove = menu;
+							success = true;
+						}
+					}
+					menus.remove(menuToMove);
+					em.getTransaction().commit();
 				}
-				/*
-				 * let the source know whether the string was successfully
-				 * transferred and used
-				 */
 				event.setDropCompleted(success);
-
 				event.consume();
 			}
 		});
-
 	}
 	
 	private void addContextMenu(final ListView<Menu> table, final Weekday dayofEditedMenu, final List<Menu> menus) {

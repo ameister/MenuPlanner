@@ -2,6 +2,11 @@ package ch.bbv.bo;
 
 import java.util.List;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -9,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -19,12 +25,13 @@ public class Menu {
 	@Id
 	@GeneratedValue
 	private long id;
-	private String name;
+	@Transient
+	private final SimpleStringProperty nameProperty = new SimpleStringProperty();
 	@ManyToOne
 	private Weekday day;
-	@OneToMany(cascade = {CascadeType.PERSIST}, fetch = FetchType.EAGER)
+	@OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER)
 	final private List<CondimentPos> condimentPos = Lists.newArrayList();
-	
+
 	public long getId() {
 		return id;
 	}
@@ -34,11 +41,16 @@ public class Menu {
 	}
 	
 	public void setName(String name) {
-		this.name = name;
+		nameProperty.setValue(name);
 	}
 	
+	@Access(AccessType.PROPERTY)
 	public String getName() {
-		return name;
+		return nameProperty.getValue();
+	}
+	
+	public StringProperty nameProperty() {
+		return nameProperty;
 	}
 	
 	public Weekday getDay() {

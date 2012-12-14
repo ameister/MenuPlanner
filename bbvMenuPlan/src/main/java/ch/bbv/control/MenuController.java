@@ -4,7 +4,9 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 
+import ch.bbv.bo.Condiment;
 import ch.bbv.bo.Menu;
 import ch.bbv.bo.Weekday;
 
@@ -15,8 +17,6 @@ public class MenuController {
 	private final Weekday day;
 	private Menu currentMenu;
 
-	//TODO move Menu
-	//TODO remove Menu
 	public MenuController(List<Menu> menus, Weekday day, EntityManager entityManager) {
 		this.menuListToAddMenu = menus;
 		this.day = day;
@@ -36,7 +36,16 @@ public class MenuController {
 	}
 	
 	public void setCurrentMenu(Menu currentMenu) {
-		this.currentMenu = currentMenu;
+		if(currentMenu != null) {
+			this.currentMenu = entityManager.merge(currentMenu);
+		} else {
+			this.currentMenu = null;
+		}
+	}
+	
+	public List<Condiment> findAllCondiments() {
+		TypedQuery<Condiment> query = entityManager.createNamedQuery("Condiment.findAll", Condiment.class);
+		return query.getResultList();
 	}
 
 	public void beginTransaction() {

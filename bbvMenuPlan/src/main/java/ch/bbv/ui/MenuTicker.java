@@ -40,7 +40,7 @@ public class MenuTicker extends Group{
 		getChildren().add(news);
 		ticker = TranslateTransitionBuilder.create()
 				.node(news)
-				.duration(Duration.millis((scene.getWidth() / 300) * 15000))
+				.duration(Duration.millis((scene.getWidth() / 300) * 5000))
 				.fromX(scene.widthProperty().doubleValue())
 				.toX(-scene.widthProperty().doubleValue()).fromY(19)
 				.interpolator(Interpolator.LINEAR).cycleCount(1)
@@ -50,13 +50,14 @@ public class MenuTicker extends Group{
 			public void handle(ActionEvent ae) {
 				ticker.stop();
 				ticker.setFromX(scene.getWidth());
-				ticker.setDuration(new Duration((scene.getWidth() / 300) * 15000));
+				ticker.setDuration(new Duration((scene.getWidth() / 300) * 5000));
 				ticker.playFromStart();
 			}
 		});
 	}
 	
 	public void refresh(String text) {
+		ticker.stop();
 		news.setText(text);
 		ticker.play();
 	}

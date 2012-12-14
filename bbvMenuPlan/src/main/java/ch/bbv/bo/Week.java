@@ -13,7 +13,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
-import javax.persistence.SequenceGenerator;
 
 import com.google.common.collect.Iterables;
 
@@ -22,7 +21,6 @@ import com.google.common.collect.Iterables;
 @NamedQuery(
 name="Week.findByNumber",
 query="SELECT w FROM Week w WHERE w.number = :weekNumber AND w.year = :year")})
-@SequenceGenerator(name="SEQ_WEEK", sequenceName="week_sequence")
 public class Week {
 	private static final Calendar cal = Calendar.getInstance();
 	public static enum DayOfWeek {
