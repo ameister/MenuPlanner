@@ -2,12 +2,11 @@ package ch.bbv.ui;
 
 import java.util.List;
 
-import javafx.animation.Interpolator;
-import javafx.animation.TranslateTransition;
-import javafx.animation.TranslateTransitionBuilder;
 import javafx.application.Application;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -29,15 +28,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.RectangleBuilder;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextBuilder;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -67,6 +60,7 @@ public class MenuPlanner extends Application {
 	private final GridPane mainPane = new GridPane();
 	private static final DataFormat menuDataFormat = new DataFormat("Object");
 	private Menu selectedMenu;
+	private MenuTicker menuTicker;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -102,7 +96,8 @@ public class MenuPlanner extends Application {
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		group.getChildren().addAll(vBox, createTicker(scene));
+		menuTicker = new MenuTicker(scene);
+		group.getChildren().addAll(vBox, menuTicker);
 		refresh(label);
 	}
 
@@ -214,7 +209,17 @@ public class MenuPlanner extends Application {
 			listView.setPrefSize(92, 200);
 			mainPane.addColumn(i++, listHeader, listView, tableFooter);
 			addDragAndDrop(listView, day);
+			addSelectonListener(listView);
 		}
+	}
+	
+	private void addSelectonListener(ListView<Menu> listView) {
+		listView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Menu>() {
+			@Override
+			public void changed(ObservableValue<? extends Menu> ov, Menu oldSelection, Menu newSelection) {
+				menuTicker.refresh(newSelection.getTickerText());
+			}
+		});
 	}
 
 	private void addDragAndDrop(final ListView<Menu> source, final Weekday day) {
@@ -284,38 +289,7 @@ public class MenuPlanner extends Application {
 		});
 
 	}
-
-	//TODO own Class
-	private Group createTicker(final Scene scene) {
-		final Group tickerArea = new Group();
-		final Rectangle tickerRect = RectangleBuilder.create().arcWidth(15).arcHeight(20).fill(new Color(0, 0, 0, .55)).x(0).y(0).width(scene.getWidth() - 6).height(30)
-				.stroke(Color.rgb(255, 255, 255, .70)).build();
-		Rectangle clipRegion = RectangleBuilder.create().arcWidth(15).arcHeight(20).x(0).y(0).width(scene.getWidth() - 6).height(30).stroke(Color.rgb(255, 255, 255, .70)).build();
-		tickerArea.setClip(clipRegion);
-		// Resize the ticker area when the window is resized
-		tickerArea.setTranslateX(6);
-		tickerArea.translateYProperty().bind(scene.heightProperty().subtract(tickerRect.getHeight() + 6));
-		tickerRect.widthProperty().bind(scene.widthProperty().subtract(16));
-		clipRegion.widthProperty().bind(scene.widthProperty().subtract(16));
-		tickerArea.getChildren().add(tickerRect);
-		// add news text
-		Text news = TextBuilder.create().text("JavaFX 2.0 News! | 85 and sunny | :)").translateY(18).fill(Color.WHITE).build();
-		tickerArea.getChildren().add(news);
-		final TranslateTransition ticker = TranslateTransitionBuilder.create().node(news).duration(Duration.millis((scene.getWidth() / 300) * 15000))
-				.fromX(scene.widthProperty().doubleValue()).toX(-scene.widthProperty().doubleValue()).fromY(19).interpolator(Interpolator.LINEAR).cycleCount(1).build();
-		// when ticker has finished reset and replay ticker animation
-		ticker.setOnFinished(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent ae) {
-				ticker.stop();
-				ticker.setFromX(scene.getWidth());
-				ticker.setDuration(new Duration((scene.getWidth() / 300) * 15000));
-				ticker.playFromStart();
-			}
-		});
-		ticker.play();
-		return tickerArea;
-	}
-
+	
 	private void addContextMenu(final ListView<Menu> table, final Weekday dayofEditedMenu, final List<Menu> menus) {
 		final ContextMenu cm = new ContextMenu();
 		MenuItem cmItem1 = new MenuItem("Edit");

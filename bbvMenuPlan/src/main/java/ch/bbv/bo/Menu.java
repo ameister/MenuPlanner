@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 @Entity
@@ -60,6 +61,10 @@ public class Menu {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	public String getTickerText() {
+		return getName() + ": " + Joiner.on(", ").join(getCondiments());
 	}
 	
 }
