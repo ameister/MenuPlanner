@@ -7,6 +7,7 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 
 import ch.bbv.bo.Condiment;
+import ch.bbv.bo.CondimentPos;
 import ch.bbv.bo.Menu;
 import ch.bbv.bo.Weekday;
 
@@ -33,6 +34,10 @@ public class MenuController {
 			createMenu();
 		}
 		return currentMenu;
+	}
+	
+	public CondimentPos crearteCondimentPos() {
+		return new CondimentPos();
 	}
 	
 	public void setCurrentMenu(Menu currentMenu) {

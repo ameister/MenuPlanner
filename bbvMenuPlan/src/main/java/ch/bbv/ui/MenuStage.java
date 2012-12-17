@@ -36,24 +36,22 @@ import ch.bbv.control.MenuController;
 import com.google.common.base.Strings;
 import com.sun.javafx.collections.ObservableListWrapper;
 
-public class MenuPane extends Stage {
+public class MenuStage extends Stage {
 	private final MenuController menuController;
-	private TextField nameField;
+	private CondimentPos pos;
+	private TextField amountField;
+	private TextField unitField;
+	private ComboBox<Condiment> condimentBox;
+	
 
-	public MenuPane(MenuController menuController) {
+	public MenuStage(MenuController menuController) {
 		Group group = new Group();
 		Scene scene = new Scene(group, 600, 340);
 		setScene(scene);
 		this.menuController = menuController;
-		Menu menu = menuController.getCurrentMenu();
 		setTitle("Menu bearbeiten");
-		GridPane mainPane = new GridPane();
-		mainPane.setHgap(5);
-		mainPane.setVgap(5);
-		mainPane.setPadding(new Insets(5));
 
-		final Node header = createHeader(menu);
-
+		Menu menu = menuController.getCurrentMenu();
 		ObservableList<CondimentPos> data = new ObservableListWrapper<CondimentPos>(menu.getCondiments());
 		TableView<CondimentPos> table = new TableView<CondimentPos>(data);
 		TableColumn<CondimentPos, BigDecimal> column1 = new TableColumn<CondimentPos, BigDecimal>("Menge");
@@ -82,22 +80,28 @@ public class MenuPane extends Stage {
 		table.getColumns().add(column1);
 		table.getColumns().add(column2);
 		table.getColumns().add(column3);
+		
+		GridPane mainPane = new GridPane();
+		mainPane.setHgap(5);
+		mainPane.setVgap(5);
+		mainPane.setPadding(new Insets(5));
 
+		final Node header = createHeader();
+		final Node buttonBox = createControlButtons();
 		mainPane.addRow(0, header);
 		mainPane.addRow(1, table);
 		mainPane.addRow(2, createFooter(data));
-		Node buttonBox = createButtonBox();
 		mainPane.addRow(3, buttonBox);
 		group.getChildren().add(mainPane);
 	}
 
-	private Node createHeader(Menu menu) {
+	private Node createHeader() {
 		GridPane gridpane = new GridPane();
 		gridpane.setPadding(new Insets(5));
 		gridpane.setHgap(5);
 		gridpane.setVgap(5);
 		Label nameLbl = new Label("Name");
-		nameField = new TextField();
+		TextField nameField = new TextField();
 		nameField.textProperty().bindBidirectional(menuController.getCurrentMenu().nameProperty());
 		nameField.setPromptText("Name");
 		nameField.requestFocus();
@@ -108,12 +112,12 @@ public class MenuPane extends Stage {
 
 	private Node createFooter(final List<CondimentPos> data) {
 		HBox hBox = new HBox();
-		final TextField amountField = new TextField();
+		amountField = new TextField();
 		amountField.setPromptText("Menge");
-		final TextField unitField = new TextField();
+		unitField = new TextField();
 		unitField.setPromptText("Einheit");
 
-		final ComboBox<Condiment> condimentBox = new ComboBox<Condiment>(FXCollections.observableArrayList(menuController.findAllCondiments()));
+		condimentBox = new ComboBox<Condiment>(FXCollections.observableArrayList(menuController.findAllCondiments()));
 		condimentBox.setEditable(true);
 		condimentBox.setConverter(new StringConverter<Condiment>() {
 			@Override
@@ -134,27 +138,46 @@ public class MenuPane extends Stage {
 				return null;
 			}
 		});
+		
+		createAndBindPos();
 
 		Button addButton = new Button("Add");
 		addButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				CondimentPos pos = new CondimentPos();
-				pos.setAmount(new BigDecimal(amountField.getText()));
-				pos.setUnit(unitField.getText());
-				Condiment condiment = condimentBox.getSelectionModel().getSelectedItem();
-				pos.setCondiment(condiment);
-				data.add(pos);
-				menuController.persist(pos);
-				menuController.persist(condiment);
-				pos.setMenu(menuController.getCurrentMenu());
+				persistCondimentPos(data);
+				createAndBindPos();
 			}
+
 		});
+		condimentBox.setPrefWidth(200);
 		hBox.getChildren().addAll(amountField, unitField, condimentBox, addButton);
 		return hBox;
 	}
 
-	private Node createButtonBox() {
+	private void persistCondimentPos(final List<CondimentPos> data) {
+		Condiment condiment = condimentBox.getSelectionModel().getSelectedItem();
+		data.add(pos);
+		Menu currentMenu = menuController.getCurrentMenu();
+		menuController.persist(currentMenu);
+		pos.setMenu(currentMenu);
+		menuController.persist(condiment);
+		menuController.persist(pos);
+	}
+
+	private void createAndBindPos() {
+		if(pos != null) {
+			pos.condimentProperty().unbind();
+			pos.amountProperty().unbindBidirectional(amountField.textProperty());
+			pos.unitProperty().unbindBidirectional(unitField.textProperty());
+		}
+		pos = menuController.crearteCondimentPos();
+		pos.condimentProperty().bind(condimentBox.getSelectionModel().selectedItemProperty());
+		pos.amountProperty().bindBidirectional(amountField.textProperty());
+		pos.unitProperty().bindBidirectional(unitField.textProperty());
+	}
+
+	private Node createControlButtons() {
 		Button okButton = new Button("Ok");
 		okButton.setOnAction(new EventHandler<ActionEvent>() {
 

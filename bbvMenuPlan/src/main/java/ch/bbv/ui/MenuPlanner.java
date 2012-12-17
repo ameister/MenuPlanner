@@ -12,7 +12,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -29,7 +28,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -60,7 +58,6 @@ public class MenuPlanner extends Application {
 	private Stage mainStage;
 	private EntityManager em;
 	private final GridPane mainPane = new GridPane();
-	private Menu selectedMenu;
 	private MenuTicker menuTicker;
 
 	public static void main(String[] args) {
@@ -74,7 +71,7 @@ public class MenuPlanner extends Application {
 		primaryStage.setTitle("Menu Planner");
 		Group group = new Group();
 		Scene scene = new Scene(group);
-//		scene.getStylesheets().add("/style.css");
+		scene.getStylesheets().add("/style.css");
 		primaryStage.setWidth(700);
 		primaryStage.setHeight(500);
 		mainStage = primaryStage;
@@ -196,7 +193,7 @@ public class MenuPlanner extends Application {
 	private void showDialog(Menu currentMenu, Weekday dayToAddMenu, List<Menu> menus) {
 		MenuController menuController = new MenuController(menus, dayToAddMenu, em);
 		menuController.setCurrentMenu(currentMenu);
-		MenuPane dialog = new MenuPane(menuController);
+		MenuStage dialog = new MenuStage(menuController);
 		dialog.initOwner(mainStage);
 		dialog.initModality(Modality.APPLICATION_MODAL);
 		dialog.sizeToScene();
@@ -224,6 +221,7 @@ public class MenuPlanner extends Application {
 			addDragAndDrop(listView, day);
 			addSelectonListener(listView);
 			addFocusListener(listView);
+			addDoubleClickAction(listView, day);
 		}
 	}
 	
@@ -248,6 +246,20 @@ public class MenuPlanner extends Application {
 						menuTicker.refresh(selectedItem.getTickerText());
 					}
 				}
+			}
+		});
+	}
+	
+	private void addDoubleClickAction(final ListView<Menu> listView, final Weekday dayToAddMenu) {
+		listView.setOnMouseClicked(new EventHandler<MouseEvent>(){
+			@Override
+			public void handle(MouseEvent event) {
+			    if (event.getClickCount()>1) {
+			        Menu selectedItem = listView.getSelectionModel().getSelectedItem();
+					if(selectedItem != null) {
+			        	showDialog(selectedItem, dayToAddMenu, listView.getItems());
+			        }
+			    }
 			}
 		});
 	}
@@ -321,6 +333,7 @@ public class MenuPlanner extends Application {
 				transaction.begin();
 				Menu menu = table.getSelectionModel().getSelectedItem();
 				menus.remove(menu);
+				menu = em.merge(menu);
 				em.remove(menu);
 				transaction.commit();
 			}
