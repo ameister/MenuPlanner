@@ -17,23 +17,31 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.MenuItemBuilder;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 import ch.bbv.bo.Condiment;
 import ch.bbv.bo.CondimentPos;
 import ch.bbv.bo.Menu;
+import ch.bbv.control.CondimentConverter;
 import ch.bbv.control.MenuController;
+import ch.bbv.control.action.DeleteAction;
 
-import com.google.common.base.Strings;
 import com.sun.javafx.collections.ObservableListWrapper;
 
 public class MenuStage extends Stage {
@@ -80,6 +88,7 @@ public class MenuStage extends Stage {
 		table.getColumns().add(column1);
 		table.getColumns().add(column2);
 		table.getColumns().add(column3);
+		addContextMenu(table);
 		
 		GridPane mainPane = new GridPane();
 		mainPane.setHgap(5);
@@ -94,17 +103,35 @@ public class MenuStage extends Stage {
 		mainPane.addRow(3, buttonBox);
 		group.getChildren().add(mainPane);
 	}
+	
+	private void addContextMenu(TableView<CondimentPos> tableView) {
+		final ContextMenu cm = new ContextMenu();
+		MenuItem cmItem = MenuItemBuilder.create()
+				.text("Delete")
+				.onAction(new DeleteAction<CondimentPos>(tableView.getItems(), tableView.getSelectionModel(), menuController.getEntityManager(), false))
+				.accelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN))
+				.build();
+
+		cm.getItems().add(cmItem);
+		tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				if (e.getButton() == MouseButton.SECONDARY)
+					cm.show(MenuStage.this, e.getScreenX(), e.getScreenY());
+			}
+		});
+	}
 
 	private Node createHeader() {
-		GridPane gridpane = new GridPane();
-		gridpane.setPadding(new Insets(5));
-		gridpane.setHgap(5);
-		gridpane.setVgap(5);
 		Label nameLbl = new Label("Name");
 		TextField nameField = new TextField();
 		nameField.textProperty().bindBidirectional(menuController.getCurrentMenu().nameProperty());
 		nameField.setPromptText("Name");
-		nameField.requestFocus();
+
+		GridPane gridpane = new GridPane();
+		gridpane.setPadding(new Insets(5));
+		gridpane.setHgap(5);
+		gridpane.setVgap(5);
 		gridpane.add(nameLbl, 0, 0);
 		gridpane.add(nameField, 1, 0);
 		return gridpane;
@@ -119,25 +146,7 @@ public class MenuStage extends Stage {
 
 		condimentBox = new ComboBox<Condiment>(FXCollections.observableArrayList(menuController.findAllCondiments()));
 		condimentBox.setEditable(true);
-		condimentBox.setConverter(new StringConverter<Condiment>() {
-			@Override
-			public String toString(Condiment condiment) {
-				if (condiment == null) {
-					return null;
-				}
-				return condiment.toString();
-			}
-
-			@Override
-			public Condiment fromString(String string) {
-				if (!Strings.isNullOrEmpty(string)) {
-					Condiment condiment = new Condiment(string);
-					condimentBox.getItems().add(condiment);
-					return condiment;
-				}
-				return null;
-			}
-		});
+		condimentBox.setConverter(new CondimentConverter(condimentBox.getItems()));
 		
 		createAndBindPos();
 
@@ -146,6 +155,7 @@ public class MenuStage extends Stage {
 			@Override
 			public void handle(ActionEvent event) {
 				persistCondimentPos(data);
+				unbindPos();
 				createAndBindPos();
 			}
 
@@ -166,15 +176,18 @@ public class MenuStage extends Stage {
 	}
 
 	private void createAndBindPos() {
+		pos = menuController.crearteCondimentPos();
+		pos.condimentProperty().bind(condimentBox.getSelectionModel().selectedItemProperty());
+		pos.amountProperty().bindBidirectional(amountField.textProperty());
+		pos.unitProperty().bindBidirectional(unitField.textProperty());
+	}
+
+	private void unbindPos() {
 		if(pos != null) {
 			pos.condimentProperty().unbind();
 			pos.amountProperty().unbindBidirectional(amountField.textProperty());
 			pos.unitProperty().unbindBidirectional(unitField.textProperty());
 		}
-		pos = menuController.crearteCondimentPos();
-		pos.condimentProperty().bind(condimentBox.getSelectionModel().selectedItemProperty());
-		pos.amountProperty().bindBidirectional(amountField.textProperty());
-		pos.unitProperty().bindBidirectional(unitField.textProperty());
 	}
 
 	private Node createControlButtons() {

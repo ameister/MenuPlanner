@@ -20,12 +20,12 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
+import javafx.scene.control.MenuItemBuilder;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -33,7 +33,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
 import ch.bbv.bo.Menu;
@@ -41,6 +40,10 @@ import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 import ch.bbv.control.MenuController;
 import ch.bbv.control.WeekNavigator;
+import ch.bbv.control.action.DeleteAction;
+import ch.bbv.control.action.DragDedectedAction;
+import ch.bbv.control.action.DragDroppedAction;
+import ch.bbv.control.action.DragOverAction;
 
 import com.google.common.collect.Lists;
 import com.sun.javafx.collections.ObservableListWrapper;
@@ -59,6 +62,7 @@ public class MenuPlanner extends Application {
 	private EntityManager em;
 	private final GridPane mainPane = new GridPane();
 	private MenuTicker menuTicker;
+	private final Label label = new Label();
 
 	public static void main(String[] args) {
 		launch(args);
@@ -76,17 +80,16 @@ public class MenuPlanner extends Application {
 		primaryStage.setHeight(500);
 		mainStage = primaryStage;
 
-		final Label label = new Label("Menu Plan Week 1");
 		label.setFont(new Font("Arial", 20));
 
 		initMenuListViews();
 
-		Node box = createButtonBox(label);
+		Node box = createButtonBox();
 
 		InvalidationListener listener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable arg0) {
-				refresh(label);
+				refresh();
 			}
 		};
 		weekNavigator.addListener(listener);
@@ -105,9 +108,9 @@ public class MenuPlanner extends Application {
 		primaryStage.show();
 		menuTicker = new MenuTicker(scene);
 		group.getChildren().addAll(pane, menuTicker);
-		refresh(label);
+		refresh();
 	}
-	
+
 	private void calibrateMainPane() {
 		mainPane.setHgap(5);
 		mainPane.setVgap(5);
@@ -117,12 +120,12 @@ public class MenuPlanner extends Application {
 		em = Persistence.createEntityManagerFactory("HibernateApp").createEntityManager();
 	}
 
-	private void refresh(final Label label) {
+	private void refresh() {
 		label.setText(weekNavigator.getCurrentWeek().toString());
 		initMenuListViews();
 	}
 
-	private Node createButtonBox(final Label label) {
+	private Node createButtonBox() {
 		Button nextBtn = new Button();
 		nextBtn.setText("Next");
 		nextBtn.setOnAction(new EventHandler<ActionEvent>() {
@@ -224,121 +227,67 @@ public class MenuPlanner extends Application {
 			addDoubleClickAction(listView, day);
 		}
 	}
-	
+
 	private void addSelectonListener(ListView<Menu> listView) {
 		listView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Menu>() {
 			@Override
 			public void changed(ObservableValue<? extends Menu> ov, Menu oldSelection, Menu newSelection) {
-				if(newSelection != null) {
+				if (newSelection != null) {
 					menuTicker.refresh(newSelection.getTickerText());
 				}
 			}
 		});
 	}
-	
+
 	private void addFocusListener(final ListView<Menu> listView) {
 		listView.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-				if(newValue.booleanValue()) {
+				if (newValue.booleanValue()) {
 					Menu selectedItem = listView.getSelectionModel().getSelectedItem();
-					if(selectedItem != null) {
+					if (selectedItem != null) {
 						menuTicker.refresh(selectedItem.getTickerText());
 					}
 				}
 			}
 		});
 	}
-	
+
 	private void addDoubleClickAction(final ListView<Menu> listView, final Weekday dayToAddMenu) {
-		listView.setOnMouseClicked(new EventHandler<MouseEvent>(){
+		listView.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent event) {
-			    if (event.getClickCount()>1) {
-			        Menu selectedItem = listView.getSelectionModel().getSelectedItem();
-					if(selectedItem != null) {
-			        	showDialog(selectedItem, dayToAddMenu, listView.getItems());
-			        }
-			    }
+				if (event.getClickCount() > 1) {
+					Menu selectedItem = listView.getSelectionModel().getSelectedItem();
+					if (selectedItem != null) {
+						showDialog(selectedItem, dayToAddMenu, listView.getItems());
+					}
+				}
 			}
 		});
 	}
 
 	private void addDragAndDrop(final ListView<Menu> listView, final Weekday day) {
-		listView.setOnDragDetected(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent event) {
-				Menu selectedMenu = listView.getSelectionModel().getSelectedItem();
-				if(selectedMenu != null) {
-					Dragboard db = listView.startDragAndDrop(TransferMode.MOVE);
-					ClipboardContent content = new ClipboardContent();
-					content.putString("" + selectedMenu.getId());
-					db.setContent(content);
-				}
-				event.consume();
-			}
-		});
-		
-		listView.setOnDragOver(new EventHandler<DragEvent>() {
-		    public void handle(DragEvent event) {
-		    	Dragboard db = event.getDragboard();
-				boolean hasContent = db.hasString();
-				boolean same = event.getGestureSource().equals(listView);
-				if (!same && hasContent) {
-		            event.acceptTransferModes(TransferMode.MOVE);
-		        }
-		        event.consume();
-		    }
-		});
-
-		listView.setOnDragDropped(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				Dragboard db = event.getDragboard();
-				boolean success = false;
-				@SuppressWarnings("unchecked")
-				ListView<Menu> dragSource = ((ListView<Menu>) event.getGestureSource());
-				if (!dragSource.equals(listView) && db.hasString()) {
-					Long id = Long.parseLong(db.getString());
-					List<Menu> menus = dragSource.getItems();
-					em.getTransaction().begin();
-					Menu menuToMove = null;
-					for (Menu menu : menus) {
-						if(menu.getId() == id.longValue()) {
-							listView.getItems().add(menu);
-							menu.setDay(day);
-							menuToMove = menu;
-							success = true;
-						}
-					}
-					menus.remove(menuToMove);
-					em.getTransaction().commit();
-				}
-				event.setDropCompleted(success);
-				event.consume();
-			}
-		});
+		listView.setOnDragDetected(new DragDedectedAction(listView));
+		listView.setOnDragOver(new DragOverAction());
+		listView.setOnDragDropped(new DragDroppedAction(listView, day, em));
 	}
-	
+
 	private void addContextMenu(final ListView<Menu> table, final Weekday dayofEditedMenu, final List<Menu> menus) {
 		final ContextMenu cm = new ContextMenu();
-		MenuItem cmItem1 = new MenuItem("Edit");
-		cmItem1.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent e) {
-				showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
-			}
-		});
-		MenuItem cmItem2 = new MenuItem("Delete");
-		cmItem2.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent e) {
-				EntityTransaction transaction = em.getTransaction();
-				transaction.begin();
-				Menu menu = table.getSelectionModel().getSelectedItem();
-				menus.remove(menu);
-				menu = em.merge(menu);
-				em.remove(menu);
-				transaction.commit();
-			}
-		});
-
+		MenuItem cmItem1 = MenuItemBuilder.create()
+				.text("Edit")
+				.onAction(new EventHandler<ActionEvent>() {
+					public void handle(ActionEvent e) {
+						showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
+					}
+				})
+				.build();
+		MenuItem cmItem2 = MenuItemBuilder.create()
+				.text("Delete")
+				.onAction(new DeleteAction<Menu>(menus, table.getSelectionModel(), em, true))
+				.accelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN))
+				.build();
 		cm.getItems().add(cmItem1);
 		cm.getItems().add(cmItem2);
 		table.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {

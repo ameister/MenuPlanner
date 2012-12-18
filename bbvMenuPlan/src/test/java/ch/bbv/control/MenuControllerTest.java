@@ -58,11 +58,22 @@ public class MenuControllerTest {
 		assertNotNull("Current Menu must be created", result);
 	}
 	@Test
-	public void commit_currentMenuInList_notAdded() throws Exception{
+	public void commit_currentMenuInList_removeAndAdd() throws Exception{
 		when(menuListMock.contains(any(Menu.class))).thenReturn(Boolean.TRUE);
 		Menu result = testee.getCurrentMenu();
 		testee.commit();
-		verify(menuListMock, times(0)).add(eq(result));
+		verify(menuListMock).add(eq(result));
+		verify(menuListMock).remove(eq(result));
 	}
+	@Test
+	public void setCurrentMenu_notNull_mergeRemoveAddRefresh() {
+		Menu menuMock = mock(Menu.class);
+		testee.setCurrentMenu(menuMock);
+		verify(menuListMock).remove(eq(menuMock));
+		verify(entityManagerMock).merge(eq(menuMock));
+		verify(menuListMock).add(any(Menu.class));
+		verify(entityManagerMock).refresh(any(Menu.class));
+	}
+	
 
 }

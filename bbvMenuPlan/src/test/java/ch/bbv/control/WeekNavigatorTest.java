@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javafx.beans.InvalidationListener;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
@@ -150,6 +152,21 @@ public class WeekNavigatorTest {
 		when(week.getMenus()).thenReturn(menus);
 		testee.setCurrentWeek(week);
 		assertEquals("All Menu must be contained", menus.size(), testee.getCurrentWeeksMenus().size());
+	}
+	
+	@Test
+	public void reset_listenderAdded_invalidate() {
+		InvalidationListener lsitenerMock = mock(InvalidationListener.class);
+		testee.addListener(lsitenerMock);
+		testee.reset();
+		verify(lsitenerMock).invalidated(eq(testee));
+	}
+	@Test
+	public void next_listenderAdded_invalidate() {
+		InvalidationListener lsitenerMock = mock(InvalidationListener.class);
+		testee.addListener(lsitenerMock);
+		testee.next();
+		verify(lsitenerMock).invalidated(eq(testee));
 	}
 
 }
