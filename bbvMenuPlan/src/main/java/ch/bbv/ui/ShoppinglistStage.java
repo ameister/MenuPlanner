@@ -22,7 +22,6 @@ import ch.bbv.control.ShoppingListGenerator;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 
-//TODO size and position
 public class ShoppinglistStage extends Stage {
 	private final ShoppingListGenerator listGenerator = new ShoppingListGenerator();
 

@@ -113,6 +113,7 @@ public class MenuStage extends Stage {
 				.build();
 
 		cm.getItems().add(cmItem);
+		cmItem.disableProperty().bind(tableView.getSelectionModel().selectedItemProperty().isNull());
 		tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
@@ -160,7 +161,7 @@ public class MenuStage extends Stage {
 			}
 
 		});
-		condimentBox.setPrefWidth(200);
+		condimentBox.setPrefWidth(175);
 		hBox.getChildren().addAll(amountField, unitField, condimentBox, addButton);
 		return hBox;
 	}

@@ -87,11 +87,6 @@ public class Week {
 		return menus;
 	}
 	
-	@Override
-	public String toString() {
-		return "Woche " + getNumber() + " " + Iterables.getFirst(days, null) + " - " + Iterables.getLast(days, null);
-	}
-
 	public void buildDays(int year) {
 		if(getNumber() == 0) {
 			throw new IllegalStateException("Unknown Weeknumber");
@@ -108,4 +103,10 @@ public class Week {
 		}
 		setYear(year);
 	}
+	
+	@Override
+	public String toString() {
+		return "Woche " + getNumber() + " " + Iterables.getFirst(days, null) + " - " + Iterables.getLast(days, null);
+	}
+
 }

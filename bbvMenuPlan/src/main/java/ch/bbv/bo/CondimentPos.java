@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -42,7 +43,7 @@ public class CondimentPos {
 	}
 
 	@Access(AccessType.PROPERTY)
-	@OneToOne(optional = false)
+	@OneToOne(cascade = {CascadeType.REMOVE}, optional = false)
 	public Condiment getCondiment() {
 		return condiment.getValue();
 	}

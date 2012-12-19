@@ -21,9 +21,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MenuItemBuilder;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -48,11 +45,6 @@ import ch.bbv.control.action.DragOverAction;
 import com.google.common.collect.Lists;
 import com.sun.javafx.collections.ObservableListWrapper;
 
-//TODO
-// - refactor:
-// -- clean up ui
-// - Auto rezeise?
-
 public class MenuPlanner extends Application {
 
 	private WeekNavigator weekNavigator;
@@ -76,8 +68,9 @@ public class MenuPlanner extends Application {
 		Group group = new Group();
 		Scene scene = new Scene(group);
 		scene.getStylesheets().add("/style.css");
-		primaryStage.setWidth(700);
+		primaryStage.setWidth(1100);
 		primaryStage.setHeight(500);
+		primaryStage.setScene(scene);
 		mainStage = primaryStage;
 
 		label.setFont(new Font("Arial", 20));
@@ -104,11 +97,10 @@ public class MenuPlanner extends Application {
 		pane.addRow(2, footer);
 		GridPane.setHalignment(footer, HPos.RIGHT);
 
-		primaryStage.setScene(scene);
-		primaryStage.show();
 		menuTicker = new MenuTicker(scene);
 		group.getChildren().addAll(pane, menuTicker);
 		refresh();
+		primaryStage.show();
 	}
 
 	private void calibrateMainPane() {
@@ -165,7 +157,7 @@ public class MenuPlanner extends Application {
 	}
 
 	private Node createTableFooter(final Weekday day, final ObservableList<Menu> data) {
-		Button createMenuBtn = new Button("Add Menu");
+		final Button createMenuBtn = new Button("Add Menu");
 		createMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -212,15 +204,14 @@ public class MenuPlanner extends Application {
 			ObservableList<Menu> data = new ObservableListWrapper<Menu>(day.getMenus());
 			Label listHeader = new Label(day.getName());
 			ListView<Menu> listView = new ListView<Menu>(data);
+			listView.setPrefSize(150, 200);
 			Node tableFooter = createTableFooter(day, data);
 			nodesToRemove.add(listView);
 			nodesToRemove.add(listHeader);
 			nodesToRemove.add(tableFooter);
-			listView.setEditable(true);
-			addContextMenu(listView, day, data);
-			listView.setPrefSize(92, 200);
 			mainPane.addColumn(i++, listHeader, listView, tableFooter);
 			GridPane.setHalignment(tableFooter, HPos.CENTER);
+			addContextMenu(listView, day, data);
 			addDragAndDrop(listView, day);
 			addSelectonListener(listView);
 			addFocusListener(listView);
@@ -283,11 +274,12 @@ public class MenuPlanner extends Application {
 					}
 				})
 				.build();
+		cmItem1.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
 		MenuItem cmItem2 = MenuItemBuilder.create()
 				.text("Delete")
 				.onAction(new DeleteAction<Menu>(menus, table.getSelectionModel(), em, true))
-				.accelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN))
 				.build();
+		cmItem2.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
 		cm.getItems().add(cmItem1);
 		cm.getItems().add(cmItem2);
 		table.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
