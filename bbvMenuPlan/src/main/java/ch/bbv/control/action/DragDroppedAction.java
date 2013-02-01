@@ -35,7 +35,7 @@ public class DragDroppedAction implements EventHandler<DragEvent> {
 				if(menu.getId() == id.longValue()) {
 					em.getTransaction().begin();
 					listView.getItems().add(menu);
-					menu.setDay(day);
+					menu.addDay(day);
 					menuToRemove = menu;
 					em.getTransaction().commit();
 					success = true;

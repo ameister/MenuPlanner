@@ -2,6 +2,6 @@ package ch.bbv.control.action;
 
 
 
-public class DeleteActionTest {
+public class RemoveActionTest {
 	//Cannot be tested because SelectionModel#getSelectedItem is final...
 }

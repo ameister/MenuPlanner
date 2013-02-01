@@ -10,16 +10,18 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 
-public class DeleteAction<T> implements EventHandler<ActionEvent> {
+public class RemoveAction<T> implements EventHandler<ActionEvent> {
 	private final List<T> items;
 	private final EntityManager em;
-	private SelectionModel<T> model;
-	private boolean doCommit;
+	private final SelectionModel<T> model;
+	private final boolean doCommit;
+	private final boolean delete;
 
-	public DeleteAction(List<T> items, SelectionModel<T> model, EntityManager em, boolean doCommit) {
+	public RemoveAction(List<T> items, SelectionModel<T> model, EntityManager em, boolean doCommit, boolean delete) {
 		this.items = items;
 		this.model = model;
 		this.em = em;
+		this.delete = delete;
 		this.doCommit = doCommit;
 	}
 
@@ -28,7 +30,9 @@ public class DeleteAction<T> implements EventHandler<ActionEvent> {
 		T item = model.getSelectedItem();
 		items.remove(item);
 		item = em.merge(item);
-		em.remove(item);
+		if(delete) {
+			em.remove(item);
+		}
 		if(doCommit) {
 			EntityTransaction transaction = em.getTransaction();
 			transaction.begin();

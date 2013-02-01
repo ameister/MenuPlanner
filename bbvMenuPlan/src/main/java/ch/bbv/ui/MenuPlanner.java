@@ -7,6 +7,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -16,6 +17,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -37,10 +39,10 @@ import ch.bbv.bo.Week;
 import ch.bbv.bo.Weekday;
 import ch.bbv.control.MenuController;
 import ch.bbv.control.WeekNavigator;
-import ch.bbv.control.action.DeleteAction;
 import ch.bbv.control.action.DragDedectedAction;
 import ch.bbv.control.action.DragDroppedAction;
 import ch.bbv.control.action.DragOverAction;
+import ch.bbv.control.action.RemoveAction;
 
 import com.google.common.collect.Lists;
 import com.sun.javafx.collections.ObservableListWrapper;
@@ -120,6 +122,7 @@ public class MenuPlanner extends Application {
 	private Node createButtonBox() {
 		Button nextBtn = new Button();
 		nextBtn.setText("Next");
+		nextBtn.setId("Next");
 		nextBtn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -157,15 +160,29 @@ public class MenuPlanner extends Application {
 	}
 
 	private Node createTableFooter(final Weekday day, final ObservableList<Menu> data) {
-		final Button createMenuBtn = new Button("Add Menu");
-		createMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
-
+		MenuController menuController = new MenuController(data, day, em);
+		final ComboBox<Menu> menuBox = new ComboBox<Menu>(FXCollections.observableArrayList(menuController.findAllMenus()));
+		final Button addMenuBtn = new Button("Add");
+		addMenuBtn.setOnAction(new EventHandler<ActionEvent>() {
+			
 			@Override
 			public void handle(ActionEvent event) {
-				showDialog(null, day, data);
+				em.getTransaction().begin();
+				Menu selectedMenu = menuBox.getSelectionModel().getSelectedItem();
+				data.add(selectedMenu);
+				selectedMenu.addDay(day);
+				Weekday mergedDay = em.merge(day);
+				em.persist(mergedDay);
+				em.getTransaction().commit();
 			}
 		});
-		return createMenuBtn;
+		addMenuBtn.disableProperty().bind(menuBox.getSelectionModel().selectedItemProperty().isNull());
+		menuBox.setPrefWidth(90);
+		HBox box = new HBox();
+		box.getChildren().add(menuBox);
+		box.getChildren().add(addMenuBtn);
+		box.setPadding(new Insets(5));
+		return box;
 	}
 
 	private Node createFooter() {
@@ -266,6 +283,14 @@ public class MenuPlanner extends Application {
 
 	private void addContextMenu(final ListView<Menu> table, final Weekday dayofEditedMenu, final List<Menu> menus) {
 		final ContextMenu cm = new ContextMenu();
+		MenuItem cmItem0 = MenuItemBuilder.create()
+				.text("Add New Menu")
+				.onAction(new EventHandler<ActionEvent>() {
+					public void handle(ActionEvent e) {
+						showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
+					}
+				})
+				.build();
 		MenuItem cmItem1 = MenuItemBuilder.create()
 				.text("Edit")
 				.onAction(new EventHandler<ActionEvent>() {
@@ -276,10 +301,11 @@ public class MenuPlanner extends Application {
 				.build();
 		cmItem1.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
 		MenuItem cmItem2 = MenuItemBuilder.create()
-				.text("Delete")
-				.onAction(new DeleteAction<Menu>(menus, table.getSelectionModel(), em, true))
+				.text("Remove")
+				.onAction(new RemoveAction<Menu>(menus, table.getSelectionModel(), em, true, false))
 				.build();
 		cmItem2.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+		cm.getItems().add(cmItem0);
 		cm.getItems().add(cmItem1);
 		cm.getItems().add(cmItem2);
 		table.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {

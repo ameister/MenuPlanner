@@ -59,6 +59,11 @@ public class MenuController {
 		TypedQuery<Condiment> query = entityManager.createNamedQuery("Condiment.findAll", Condiment.class);
 		return query.getResultList();
 	}
+	
+	public List<Menu> findAllMenus() {
+		TypedQuery<Menu> query = entityManager.createNamedQuery("Menu.findAll", Menu.class);
+		return query.getResultList();
+	}
 
 	public void beginTransaction() {
 		EntityTransaction transaction = entityManager.getTransaction();
@@ -72,7 +77,7 @@ public class MenuController {
 	public void commit() {
 		if(menuListToAddMenu.contains(currentMenu)){
 			menuListToAddMenu.remove(currentMenu);
-			currentMenu.setDay(day);
+			currentMenu.addDay(day);
 		}
 		menuListToAddMenu.add(currentMenu);
 		entityManager.persist(currentMenu);

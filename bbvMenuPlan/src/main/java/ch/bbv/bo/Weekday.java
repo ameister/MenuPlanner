@@ -8,8 +8,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 import ch.bbv.bo.Week.DayOfWeek;
 
@@ -24,7 +24,7 @@ public class Weekday {
 	private DayOfWeek dayOfWeek;
 	@ManyToOne
 	private Week week;
-	@OneToMany(mappedBy = "day")
+	@ManyToMany
 	private final List<Menu> menus = new ArrayList<Menu>();
 	
 	public long getId() {
@@ -45,7 +45,7 @@ public class Weekday {
 
 	public void addMenu(Menu menu) {
 		menus.add(menu);
-		menu.setDay(this);
+		menu.addDay(this);
 	}
 
 	public Date getDate() {

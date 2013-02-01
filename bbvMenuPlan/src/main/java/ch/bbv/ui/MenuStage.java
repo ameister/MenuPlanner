@@ -40,7 +40,7 @@ import ch.bbv.bo.CondimentPos;
 import ch.bbv.bo.Menu;
 import ch.bbv.control.CondimentConverter;
 import ch.bbv.control.MenuController;
-import ch.bbv.control.action.DeleteAction;
+import ch.bbv.control.action.RemoveAction;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 
@@ -108,7 +108,7 @@ public class MenuStage extends Stage {
 		final ContextMenu cm = new ContextMenu();
 		MenuItem cmItem = MenuItemBuilder.create()
 				.text("Delete")
-				.onAction(new DeleteAction<CondimentPos>(tableView.getItems(), tableView.getSelectionModel(), menuController.getEntityManager(), false))
+				.onAction(new RemoveAction<CondimentPos>(tableView.getItems(), tableView.getSelectionModel(), menuController.getEntityManager(), false, true))
 				.accelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN))
 				.build();
 

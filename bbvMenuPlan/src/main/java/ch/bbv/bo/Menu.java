@@ -12,7 +12,9 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
@@ -20,6 +22,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 @Entity
+@NamedQueries({
+@NamedQuery(
+name="Menu.findAll",
+query="SELECT m FROM Menu m")})
 public class Menu {
 	
 	@Id
@@ -27,8 +33,8 @@ public class Menu {
 	private long id;
 	@Transient
 	private final SimpleStringProperty nameProperty = new SimpleStringProperty();
-	@ManyToOne
-	private Weekday day;
+	@ManyToMany
+	private List<Weekday> days;
 	@OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER)
 	final private List<CondimentPos> condimentPos = Lists.newArrayList();
 
@@ -53,14 +59,6 @@ public class Menu {
 		return nameProperty;
 	}
 	
-	public Weekday getDay() {
-		return day;
-	}
-	
-	public void setDay(Weekday day) {
-		this.day = day;
-	}
-	
 	public void addPos(CondimentPos pos) {
 		condimentPos.add(pos);
 		pos.setMenu(this);
@@ -68,6 +66,10 @@ public class Menu {
 	
 	public List<CondimentPos> getCondiments() {
 		return condimentPos;
+	}
+	
+	public void addDay(Weekday day) {
+		days.add(day);
 	}
 	
 	@Override
