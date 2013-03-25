@@ -287,7 +287,7 @@ public class MenuPlanner extends Application {
 				.text("Add New Menu")
 				.onAction(new EventHandler<ActionEvent>() {
 					public void handle(ActionEvent e) {
-						showDialog(table.getSelectionModel().getSelectedItem(), dayofEditedMenu, menus);
+						showDialog(null, dayofEditedMenu, menus);
 					}
 				})
 				.build();

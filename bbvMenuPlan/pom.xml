@@ -28,11 +28,32 @@
 			<version>1.9.5</version>
 		</dependency>
 		<dependency>
-		<groupId>com.oracle</groupId>
-		<artifactId>javafx</artifactId>
-		<version>2.0</version>
-		<scope>system</scope>
-		<systemPath>/Library/Java/JavaVirtualMachines/jdk1.7.0_09.jdk/Contents/Home/jre/lib/jfxrt.jar</systemPath>
+			<groupId>com.oracle</groupId>
+			<artifactId>javafx</artifactId>
+			<version>2.0</version>
+			<scope>system</scope>
+			<systemPath>/Library/Java/JavaVirtualMachines/jdk1.7.0_09.jdk/Contents/Home/jre/lib/jfxrt.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jemmy</groupId>
+			<artifactId>jemmy</artifactId>
+			<version>2.0</version>
+			<scope>system</scope>
+			<systemPath>/Users/meister/git/repository/bbvMenuPlan/lib/JemmyFX.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jemmy</groupId>
+			<artifactId>jemmyCore</artifactId>
+			<version>2.0</version>
+			<scope>system</scope>
+			<systemPath>/Users/meister/git/repository/bbvMenuPlan/lib/JemmyCore.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jemmy</groupId>
+			<artifactId>jemmyAWT</artifactId>
+			<version>2.0</version>
+			<scope>system</scope>
+			<systemPath>/Users/meister/git/repository/bbvMenuPlan/lib/JemmyAWTInput.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
