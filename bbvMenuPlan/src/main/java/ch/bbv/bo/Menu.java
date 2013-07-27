@@ -34,9 +34,9 @@ public class Menu {
 	@Transient
 	private final SimpleStringProperty nameProperty = new SimpleStringProperty();
 	@ManyToMany
-	private List<Weekday> days;
+	private List<Weekday> days = Lists.newArrayList();
 	@OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER)
-	final private List<CondimentPos> condimentPos = Lists.newArrayList();
+	private List<CondimentPos> condimentPos = Lists.newArrayList();
 
 	public long getId() {
 		return id;

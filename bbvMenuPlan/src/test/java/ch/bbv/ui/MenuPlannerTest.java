@@ -9,6 +9,7 @@ import org.jemmy.fx.SceneDock;
 import org.jemmy.fx.control.LabeledDock;
 import org.jemmy.resources.StringComparePolicy;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MenuPlannerTest {
@@ -19,6 +20,7 @@ public class MenuPlannerTest {
 	}
 
 	@Test
+	@Ignore
 	public void isAddMenuButtonThere() {
 		@SuppressWarnings("unchecked")
 		SceneDock scene = new SceneDock();

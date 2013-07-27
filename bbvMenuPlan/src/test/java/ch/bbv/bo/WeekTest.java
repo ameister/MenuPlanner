@@ -3,7 +3,9 @@ package ch.bbv.bo;
 import java.util.Calendar;
 import java.util.List;
 
-import org.junit.Assert;
+import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
@@ -13,6 +15,11 @@ import ch.bbv.bo.Week.DayOfWeek;
 public class WeekTest {
 	
 	private Calendar cal = Calendar.getInstance();
+	
+	@Before
+	public void setUpYear() {
+		cal.set(Calendar.YEAR, 2012);
+	}
 
 	@Test
 	public void getDays_daysFilled_correctOrder() {
@@ -20,10 +27,10 @@ public class WeekTest {
 		testee.setNumber(1);
 		testee.buildDays(cal.get(Calendar.YEAR));
 		List<Weekday> result = testee.getDays();
-		Assert.assertEquals(7, result.size());
+		assertEquals(7, result.size());
 		int i = 0;
 		for (Weekday weekday : result) {
-			Assert.assertEquals(DayOfWeek.values()[i++], weekday.getDayOfWeek());
+			assertEquals(DayOfWeek.values()[i++], weekday.getDayOfWeek());
 		}
 	}
 	
@@ -36,10 +43,10 @@ public class WeekTest {
 		cal.setTime(Iterables.getFirst(result, null).getDate());
 		Calendar expected = Calendar.getInstance();
 		expected.set(2012, 0, 2);
-		Assert.assertEquals(expected.get(Calendar.DAY_OF_YEAR), cal.get(Calendar.DAY_OF_YEAR));
+		assertEquals(expected.get(Calendar.DAY_OF_YEAR), cal.get(Calendar.DAY_OF_YEAR));
 		expected.set(2012, 0, 8);
 		cal.setTime(result.get(6).getDate());
-		Assert.assertEquals(expected.get(Calendar.DAY_OF_YEAR), cal.get(Calendar.DAY_OF_YEAR));
+		assertEquals(expected.get(Calendar.DAY_OF_YEAR), cal.get(Calendar.DAY_OF_YEAR));
 	}
 
 }

@@ -25,7 +25,7 @@ public class Weekday {
 	@ManyToOne
 	private Week week;
 	@ManyToMany
-	private final List<Menu> menus = new ArrayList<Menu>();
+	private List<Menu> menus = new ArrayList<Menu>();
 	
 	public long getId() {
 		return id;
