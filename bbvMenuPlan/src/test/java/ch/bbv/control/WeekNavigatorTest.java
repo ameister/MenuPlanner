@@ -72,7 +72,8 @@ public class WeekNavigatorTest {
 	public void previous_currentWeek_previousWeek(){
 		Week currentWeek = testee.getCurrentWeek();
 		Week result = testee.previous();
-		assertEquals("Previous week expected", Integer.valueOf(currentWeek.getNumber() - 1), Integer.valueOf(result.getNumber()));
+		int weekNumber = currentWeek.getNumber() - 1 == 0 ? 52 : currentWeek.getNumber() - 1;
+		assertEquals("Previous week expected", Integer.valueOf(weekNumber), Integer.valueOf(result.getNumber()));
 	}
 	
 	@Test

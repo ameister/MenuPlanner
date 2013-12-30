@@ -56,8 +56,10 @@ public class WeekNavigator implements Observable {
 		}
 	}
 
-	private int getYearOfWeek() {
-		return currentWeek == null ? cal.get(Calendar.YEAR) : currentWeek.getYear();
+	int getYearOfWeek() {
+		Calendar yearCal = Calendar.getInstance();
+		yearCal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		return currentWeek == null ? yearCal.get(Calendar.YEAR) : currentWeek.getYear();
 	}
 
 	private Week loadWeek(int currentWeekNumber, int year) {
