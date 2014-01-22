@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Menu Planner</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="action_generateShoppinglist">Generiere Enkaufsliste</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_display_message">Menu</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="loading">loading&#8230;</string>
+    <string name="today_button">Heute</string>
+    <string name="columnHeader1Text">Menge</string>
+    <string name="columnHeader2Text">Einheit</string>
+    <string name="columnHeader3Text">Zutat</string>
+    <string name="title_activity_shopping_list">Einkaufsliste</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_changeServerAdr">Anderer Server</string>
+    <string name="saveList">Speichern</string>
+    <string name="savedShoppingList">shoppingList</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="year">Jahr</string>
+    <string name="weeknumber">Woche</string>
+    <string name="descColumnHeader">Zutat</string>
+    <string name="amountColumnHeader">Menge</string>
+    <string name="unitColumnHeader">Einheit</string>
+    <string name="savedLists">Gespeicherte Listen</string>
+    <string name="offline">Offline</string>
+
+</resources>

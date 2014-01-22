@@ -1,0 +1,13 @@
+<resources>
+
+    <string name="title_activity_start">Menu Planner</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_serverIp">Server IP</string>
+    <string name="action_start">Starte die App</string>
+    <string name="action_start_short">Start</string>
+    <string name="login_progress_signing_in">Signing in&#8230;</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="error_incorrect_serverAddress">Server not reachable</string>
+
+</resources>

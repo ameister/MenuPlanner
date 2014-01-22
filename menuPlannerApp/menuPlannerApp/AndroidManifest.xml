@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ch.bbv.menuplanner"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-permission android:name="android.permission.INTERNET" >
+    </uses-permission>
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="ch.bbv.menuplanner.MainActivity"
+            android:label="@string/app_name" android:launchMode="singleInstance">
+        </activity>
+        <activity
+            android:name="ch.bbv.menuplanner.DisplayMenuActivity"
+            android:label="@string/title_activity_display_message"
+            android:parentActivityName="MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="MainActivity" />
+        </activity>
+        <activity
+            android:name="ch.bbv.menuplanner.ShoppingListActivity"
+            android:label="@string/title_activity_shopping_list"
+            android:parentActivityName="ch.bbv.menuplanner.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ch.bbv.menuplanner.MainActivity" />
+        </activity>
+        <activity
+            android:name="ch.bbv.menuplanner.StartActivity"
+            android:label="@string/title_activity_start"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+             <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="MainActivity" />
+        </activity>
+    </application>
+
+</manifest>
